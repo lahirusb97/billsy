@@ -11,7 +11,7 @@ import InputLabel from "@mui/material/InputLabel";
 import InputAdornment from "@mui/material/InputAdornment";
 import FormControl from "@mui/material/FormControl";
 import { Person } from "@mui/icons-material";
-import { getAuth,sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 export default function PasswordRestDialog({ inputemail, open, setOpen }) {
   const [email, setEmail] = useState(inputemail);
   const [error, setError] = useState("none");
@@ -24,7 +24,7 @@ export default function PasswordRestDialog({ inputemail, open, setOpen }) {
   const handleClose = () => {
     setOpen(false);
   };
-const resetPs=()=>{
+  const resetPs = () => {
     const auth = getAuth();
     sendPasswordResetEmail(auth, email)
       .then(() => {
@@ -35,7 +35,7 @@ const resetPs=()=>{
         console.log("Error sending password reset email:", error);
       });
   };
-}
+
   return (
     <Dialog
       open={open}
