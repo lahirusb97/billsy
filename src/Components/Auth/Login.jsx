@@ -21,23 +21,27 @@ import LoadingAni from "../../assets/Animations/LoadingAni.json";
 //Imgs
 import bgimg from "../../assets/Images/bgimg.jpg";
 import useWindowDimensions from "../ViewPortSize";
+import PasswordRestDialog from "./PasswordRestDialog";
 
 export default function Login() {
   const [email, setEmail] = useState("lahirushirant@gmail.com");
   const [password, setPassword] = useState("qwertyu");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const loginRef = useRef(null);
   const { height, width } = useWindowDimensions();
   const [loginWidth, setloginWidth] = useState();
   const [loginHeight, setloginHeight] = useState();
+  const [error, setError] = useState("none");
+  const [requstPassword, setRequstPassword] = useState("none");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // setloginWidth(loginRef.current.offsetWidth);
-    // setloginHeight(loginRef.current.offsetHeight);
+    setloginWidth(loginRef.current.offsetWidth);
+    setloginHeight(loginRef.current.offsetHeight);
   }, [width, height]);
 
   const forgotPS = () => {
-    console.log(width);
+    setOpen(true);
   };
   const singinUser = () => {
     setLoading(true);
@@ -48,20 +52,20 @@ export default function Login() {
         const user = userCredential.user;
         console.log(user);
         setLoading(false);
-
+        setError("none");
         // ...
       })
       .catch((error) => {
         setLoading(false);
 
         const errorCode = error.code;
-        const errorMessage = error.message;
+
         if (errorCode === "auth/wrong-password") {
-          console.log("Invalid password");
+          setError("password");
         } else if (errorCode === "auth/user-not-found") {
-          console.log("User not found");
+          setError("email");
         } else {
-          console.log(errorMessage);
+          setError("network ");
         }
       });
   };
@@ -88,7 +92,10 @@ export default function Login() {
         className="absolute w-full h-screen object-cover bg-center opacity-50"
         src={bgimg}
       />
-      <div className="border-2 p-4 sm:w-1/2 w-full sm:h-auto h-screen bg-mywhite bg-opacity-75 backdrop-blur-sm flex flex-col justify-center relative z-50 ">
+      <div
+        ref={loginRef}
+        className="border-2 p-4 sm:w-1/2 w-full sm:h-auto h-screen bg-mywhite bg-opacity-75 backdrop-blur-sm flex flex-col justify-center relative z-50 "
+      >
         <div className="flex item- justify-center items-center flex-col">
           <LockIcon />
           <h1 className="text-2xl text-mybluedark font-semibold">Sing In</h1>
@@ -97,14 +104,15 @@ export default function Login() {
         {loading ? (
           <Lottie
             options={LoadingOptions}
-            height={loginHeight}
-            width={loginWidth}
+            height={loginHeight / 2}
+            width={loginWidth / 2}
           />
         ) : (
-          <div ref={loginRef} className="flex flex-col ">
+          <div className="flex flex-col ">
             <FormControl variant="standard">
               <InputLabel htmlFor="input-with-icon-adornment">Email</InputLabel>
               <Input
+                error={error === "email" ? true : false}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="example@gmail.com"
@@ -117,11 +125,15 @@ export default function Login() {
                 }
               />
             </FormControl>
+            <p className="text-myred font-bold italic">
+              {error === "email" ? "Invalid Email" : ""}
+            </p>
             <FormControl style={{ marginTop: "2rem" }} variant="standard">
               <InputLabel htmlFor="input-with-icon-adornment">
                 Password
               </InputLabel>
               <Input
+                error={error === "password" ? true : false}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Your password"
@@ -134,6 +146,9 @@ export default function Login() {
                 }
               />
             </FormControl>
+            <p className="text-myred font-bold italic">
+              {error === "password" ? "Invalid Email" : ""}
+            </p>
             <a
               onClick={forgotPS}
               href="#"
@@ -152,6 +167,7 @@ export default function Login() {
             </motion.button>
           </div>
         )}
+        <PasswordRestDialog inputemail={email} open={open} setOpen={setOpen} />
       </div>
     </div>
   );
