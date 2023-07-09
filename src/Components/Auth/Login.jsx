@@ -12,7 +12,13 @@ import { Password, Person } from "@mui/icons-material";
 import { motion } from "framer-motion";
 //Firebase
 import "../firebaseConfig";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  browserLocalPersistence,
+  getAuth,
+  inMemoryPersistence,
+  setPersistence,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { CircularProgress } from "@mui/material";
 //animations
 import Lottie from "react-lottie";
@@ -22,6 +28,11 @@ import LoadingAni from "../../assets/Animations/LoadingAni.json";
 import bgimg from "../../assets/Images/bgimg.jpg";
 import useWindowDimensions from "../ViewPortSize";
 import PasswordRestDialog from "./PasswordRestDialog";
+//Redux
+import { useSelector, useDispatch } from "react-redux";
+import { setuserData } from "../../Store/Slices/userDataSlice";
+//* Firebase
+import { doc, onSnapshot, getFirestore } from "firebase/firestore";
 
 export default function Login() {
   const [email, setEmail] = useState("lahirushirant@gmail.com");
@@ -34,42 +45,61 @@ export default function Login() {
   const [error, setError] = useState("none");
   const [requstPassword, setRequstPassword] = useState("none");
   const [open, setOpen] = useState(false);
-
+  //Redux
+  const dispatch = useDispatch();
+  //todo: Window Height
   useEffect(() => {
     setloginWidth(loginRef.current.offsetWidth);
     setloginHeight(loginRef.current.offsetHeight);
   }, [width, height]);
+  //todo: Window Height
 
   const forgotPS = () => {
     setOpen(true);
   };
+
+  //*! get auth and user data
   const singinUser = () => {
     setLoading(true);
     const auth = getAuth();
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        console.log(user);
-        setLoading(false);
-        setError("none");
-        // ...
+
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        return signInWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            // Signed in
+            const user = userCredential.user;
+            const db = getFirestore();
+            const unsub = onSnapshot(doc(db, "Users", user.uid), (doc) => {
+              if (doc.exists()) {
+                dispatch(setuserData({ user: doc.data(), auth: user.uid }));
+              }
+            });
+            setLoading(false);
+            setError("none");
+            // ...
+          })
+          .catch((error) => {
+            setLoading(false);
+
+            const errorCode = error.code;
+
+            if (errorCode === "auth/wrong-password") {
+              setError("password");
+            } else if (errorCode === "auth/user-not-found") {
+              setError("email");
+            } else {
+              setError("network ");
+            }
+          });
       })
       .catch((error) => {
-        setLoading(false);
-
-        const errorCode = error.code;
-
-        if (errorCode === "auth/wrong-password") {
-          setError("password");
-        } else if (errorCode === "auth/user-not-found") {
-          setError("email");
-        } else {
-          setError("network ");
-        }
+        // Handle Errors here.
       });
   };
-  //Animations
+  //*! get auth and user data
+
+  //todo lottie Animations
   const defaultOptions = {
     loop: true,
     autoplay: true,
@@ -86,6 +116,8 @@ export default function Login() {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+  //todo lottie Animations
+
   return (
     <div className="w-full h-screen flex justify-center items-center max-w-screen-xl m-auto">
       <img
