@@ -1,3 +1,9 @@
+import AnimateRoute from "../Navigations/AnimateRoute";
+
 export default function Report() {
-  return <div>Report</div>;
+  return (
+    <AnimateRoute>
+      <div>Report</div>
+    </AnimateRoute>
+  );
 }

@@ -12,9 +12,32 @@ export default {
       mygreen: "#3FD1AE",
       myblue: "#3F5FD1",
       myred: "#D13F43",
+      myredlite: "#F68689",
       mybluedark: "#081226",
+      //
       mywhite: "#ffffff",
+      black: "#1D1D1D",
+      //blue
+      bluedark: "#131729",
+      blue: "#6D7BE3",
+      bluelite: "#E1E9FF",
+      //green
+      greendark: "#288F60",
+      greenlite: "#D2FAE0",
+      //red
+      red: "#E95D56",
+      redlite: "#FFE3E4",
+      //purple
+      purple: "#7F55DA",
+      purplelite: "#ECE3FF",
+      //Gray
+      grayLite: "#E6E6E6",
     },
   },
-  plugins: [],
+  plugins: [
+    require("@headlessui/tailwindcss"),
+
+    // Or with a custom prefix:
+    require("@headlessui/tailwindcss")({ prefix: "ui" }),
+  ],
 };

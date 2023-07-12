@@ -1,3 +1,9 @@
+import AnimateRoute from "../Navigations/AnimateRoute";
+
 export default function Settings() {
-  return <div>Settings</div>;
+  return (
+    <AnimateRoute>
+      <div>Settings</div>;
+    </AnimateRoute>
+  );
 }

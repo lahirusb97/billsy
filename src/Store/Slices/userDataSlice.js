@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   authData: null,
   userData: null,
+  acess: false,
   loading: false,
   complete: false,
   error: false,
@@ -16,6 +17,8 @@ export const userDataSlice = createSlice({
       const { auth, user } = action.payload;
       state.userData = user;
       state.authData = auth;
+      state.acess = user["Access"];
+      console.log(state.acess);
     },
   },
 });

@@ -1,3 +1,9 @@
+import AnimateRoute from "../Navigations/AnimateRoute";
+
 export default function Employees() {
-  return <div>Employees</div>;
+  return (
+    <AnimateRoute>
+      <div>Employees</div>
+    </AnimateRoute>
+  );
 }

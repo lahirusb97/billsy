@@ -1,3 +1,12 @@
+import AnimateRoute from "../Navigations/AnimateRoute";
+import ProfitChart from "./ProfitChart";
+
 export default function Dashboard() {
-  return <div>Dashboard</div>;
+  return (
+    <AnimateRoute>
+      <div>
+        <ProfitChart />
+      </div>
+    </AnimateRoute>
+  );
 }

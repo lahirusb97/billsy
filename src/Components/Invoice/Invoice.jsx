@@ -1,3 +1,9 @@
+import AnimateRoute from "../Navigations/AnimateRoute";
+
 export default function Invoice() {
-  return <div>Invoice</div>;
+  return (
+    <AnimateRoute>
+      <div>Invoice</div>
+    </AnimateRoute>
+  );
 }

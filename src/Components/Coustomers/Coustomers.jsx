@@ -1,3 +1,9 @@
+import AnimateRoute from "../Navigations/AnimateRoute";
+
 export default function Coustomers() {
-  return <div>Coustomers</div>;
+  return (
+    <AnimateRoute>
+      <div>Coustomers</div>
+    </AnimateRoute>
+  );
 }
