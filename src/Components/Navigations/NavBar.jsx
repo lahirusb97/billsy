@@ -16,7 +16,11 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-
+//
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
 //* Icons
 import {
   AccountBalanceOutlined,
@@ -26,14 +30,23 @@ import {
   Inventory2Outlined,
   LogoutOutlined,
   PeopleOutlineOutlined,
+  Settings,
+  SettingsApplicationsRounded,
+  SettingsApplicationsTwoTone,
+  SettingsBluetoothRounded,
   SettingsOutlined,
 } from "@mui/icons-material";
 import MainRoutes from "./MainRoutes";
 import { getAuth, signOut } from "firebase/auth";
 import AnimateRoute from "./AnimateRoute";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Paper } from "@mui/material";
+import DrawerRight from "../Component/DrawerRight";
+import { useEffect } from "react";
+import useWindowDimensions from "../../Hooks/WindowSize";
+import { setWidth } from "../../Store/Slices/mainBoxSize";
+import { setCurrentShop, switchShop } from "../../Store/Slices/userDataSlice";
 
 // todo Styles start
 const drawerWidth = 250;
@@ -64,7 +77,6 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "flex-end",
-
   padding: theme.spacing(0, 1),
   // necessary for content to be below app bar
 
@@ -113,10 +125,21 @@ export default function NavBar() {
   //*Router
   const navigate = useNavigate();
   const location = useLocation();
-
+  const dispatch = useDispatch();
+  const { height, width } = useWindowDimensions();
+  const mainbox_width = React.useRef();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [selectNav, setSelectNav] = React.useState(0);
+  const [selectShop, setselectShop] = React.useState("Shop1");
+  const [age, setAge] = React.useState("");
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
+  };
+  useEffect(() => {
+    dispatch(setWidth(mainbox_width.current.offsetWidth));
+  }, [width]);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -126,6 +149,7 @@ export default function NavBar() {
     setOpen(false);
   };
   const adminAccess = useSelector((state) => state.user_data.userData["Admin"]);
+  const shopName = useSelector((state) => state.user_data.CURRENT_SHOP["Name"]);
   const navList = [
     {
       name: "Dashboard",
@@ -176,6 +200,7 @@ export default function NavBar() {
       protected: true,
     },
   ];
+
   return (
     <AnimateRoute>
       <Box sx={{ display: "flex" }}>
@@ -201,13 +226,18 @@ export default function NavBar() {
             >
               <MenuIcon style={{ color: "1D1D1D" }} />
             </IconButton>
-            <Typography variant="h6" noWrap component="div">
+
+            <Typography variant="h6" noWrap component="div" className="flex">
               <h1 className="text-black ">
-                {location.pathname === "/"
+                {shopName}
+                {/* {location.pathname === "/"
                   ? "Dashboard"
                   : location.pathname.substring(1).charAt(0).toUpperCase() +
-                    location.pathname.substring(2)}
+                    location.pathname.substring(2)} */}
               </h1>
+              <button onClick={() => dispatch(switchShop())}>
+                <Settings className="text-myred mx-2" />
+              </button>
             </Typography>
           </Toolbar>
         </AppBar>
@@ -350,6 +380,7 @@ export default function NavBar() {
           </List>
         </Drawer>
         <Box
+          ref={mainbox_width}
           component="main"
           className="bg-mymainbg w-full h-screen"
           sx={{ flexGrow: 1, p: 0 }}

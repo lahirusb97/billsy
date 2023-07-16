@@ -1,8 +1,8 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -11,6 +11,8 @@ import { getFirestore } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: "AIzaSyAC1uD_K87Uo_yeMguJ0hsuYpZAscuSj8Y",
   authDomain: "billing-d8390.firebaseapp.com",
+  databaseURL:
+    "https://billing-d8390-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "billing-d8390",
   storageBucket: "billing-d8390.appspot.com",
   messagingSenderId: "263017367167",
@@ -23,3 +25,4 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const firestore = getFirestore(app);
+const database = getDatabase(app);

@@ -10,40 +10,57 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import useWindowDimensions from "../../Hooks/WindowSize";
+import { AppBar } from "@mui/material";
+import { Close } from "@mui/icons-material";
+import { useSelector } from "react-redux";
+// eslint-disable-next-line react/prop-types
+export default function DrawerRight({ comp, state, setState }) {
+  // eslint-disable-next-line react/prop-types
+  const mainBoxSize = useSelector((state) => state.mainbox_width.width);
 
-export default function DrawerRight() {
-  const [state, setState] = React.useState(true);
+  const { width, height } = useWindowDimensions();
 
-  const toggleDrawer = (open) => (event) => {
-    if (
-      event.type === "keydown" &&
-      (event.key === "Tab" || event.key === "Shift")
-    ) {
-      return;
-    }
-
-    setState(open);
+  const navWidth = width > 500 ? 500 : mainBoxSize;
+  const handleClose = () => {
+    setState(false);
   };
-
-  const list = (anchor) => (
-    <Box
-      sx={{
-        width: anchor === "top" || anchor === "bottom" ? "auto" : 250,
-      }}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
-    >
-      <List></List>
-    </Box>
-  );
-
   return (
     <div>
-      <React.Fragment key={"right"}>
-        <Button onClick={toggleDrawer(true)}>{"right"}</Button>
-        <Drawer anchor={"right"} open={state} onClose={toggleDrawer(false)}>
-          {list("right")}
+      <React.Fragment>
+        <Drawer
+          BackdropProps={{
+            invisible: true,
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: "#F5F4F7",
+              color: "white",
+              zIndex: 20000,
+              position: "absolute",
+            },
+          }}
+          anchor={"right"}
+          open={state}
+          // onClose={toggleDrawer(false)}
+        >
+          <Box
+            sx={{
+              width: navWidth,
+              display: "block",
+              color: "black",
+              marginTop: "70px",
+            }}
+            role="button"
+            // onClick={toggleDrawer(false)}
+          >
+            <div className="ml-4" onClick={handleClose}>
+              <ArrowForwardIosIcon />
+            </div>
+
+            {comp}
+          </Box>
         </Drawer>
       </React.Fragment>
     </div>

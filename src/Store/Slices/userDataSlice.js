@@ -3,6 +3,9 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   authData: null,
   userData: null,
+  selected_Shop: false,
+  SHOP_LIST: [],
+  CURRENT_SHOP: "",
   acess: false,
   loading: false,
   complete: false,
@@ -18,12 +21,22 @@ export const userDataSlice = createSlice({
       state.userData = user;
       state.authData = auth;
       state.acess = user["Access"];
-      console.log(state.acess);
+    },
+    setCurrentShop: (state, action) => {
+      const { curentShop, Spswitch, shopList } = action.payload;
+
+      state.CURRENT_SHOP = curentShop;
+      state.SHOP_LIST = shopList;
+      state.selected_Shop = Spswitch;
+    },
+    switchShop: (state) => {
+      state.selected_Shop = false;
     },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { setuserData } = userDataSlice.actions;
+export const { setuserData, setCurrentShop, switchShop } =
+  userDataSlice.actions;
 
 export default userDataSlice.reducer;

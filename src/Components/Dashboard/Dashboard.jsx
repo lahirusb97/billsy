@@ -1,3 +1,4 @@
+import { useSelector } from "react-redux";
 import AnimateRoute from "../Navigations/AnimateRoute";
 import ProfitChart from "./ProfitChart";
 

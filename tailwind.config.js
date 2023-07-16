@@ -33,6 +33,9 @@ export default {
       //Gray
       grayLite: "#E6E6E6",
     },
+    borderRadius: {
+      borderinput: "20px",
+    },
   },
   plugins: [
     require("@headlessui/tailwindcss"),
