@@ -16,6 +16,7 @@ import SelectBox from "../Component/SelectBox";
 import { useSelector } from "react-redux";
 //
 import SearchCom from "../Component/SearchCom";
+import EditProduct from "./EditProduct";
 //
 export default function Stocks() {
   const [state, setState] = useState(false);
@@ -28,14 +29,18 @@ export default function Stocks() {
     setEdit(editSw);
     setInputdata(data);
   };
+
   return (
     <div>
-      {/* <StockCount /> */}
       <DrawerRight
         state={state}
         setState={setState}
         comp={
-          <Addproduct edit={edit} inputdata={inputdata} setState={setState} />
+          edit ? (
+            <EditProduct setState={setState} inputdata={inputdata} />
+          ) : (
+            <Addproduct setState={setState} />
+          )
         }
       />
       <button
