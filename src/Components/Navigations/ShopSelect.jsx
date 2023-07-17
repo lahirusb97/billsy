@@ -1,10 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentShop } from "../../Store/Slices/userDataSlice";
-//     <div className="w-full h-screen flex justify-center items-center">
-//       {/* <button
-//         onClick={() => {
-//           dispatch(setCurrentShop({ curentShop: "ok", Spswitch: true }));
-//         }}
 
 import { useState, useEffect } from "react";
 import { RadioGroup } from "@headlessui/react";
@@ -12,17 +7,6 @@ import { CheckCircle } from "@mui/icons-material";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { getDatabase, ref, onValue } from "firebase/database";
 import { setStock } from "../../Store/Slices/stockData";
-const plans = [
-  {
-    name: "Startup",
-  },
-  {
-    name: "Business",
-  },
-  {
-    name: "Enterprise",
-  },
-];
 
 export default function ShopSelect() {
   const authId = useSelector((state) => state.user_data.authData);
@@ -66,6 +50,7 @@ export default function ShopSelect() {
       if (snapshot.exists()) {
         const data = snapshot.val();
         const allStocks = [];
+
         Object.values(data).map((e) => allStocks.push(e));
 
         dispatch(

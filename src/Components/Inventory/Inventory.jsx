@@ -20,7 +20,6 @@ export default function Inventory() {
   const shop_Id = useSelector(
     (state) => state.user_data.CURRENT_SHOP["Shop_id"]
   );
-  // console.log(shop_switch);
 
   useEffect(() => {
     const getShopData = async () => {
@@ -29,8 +28,8 @@ export default function Inventory() {
       onSnapshot(q, (querySnapshot) => {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-
-          dispatch(setCategory(data));
+          const docId = doc.id;
+          dispatch(setCategory({ id: docId, ...data }));
         });
 
         // console.log(shops);

@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Autocomplete } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Autocomplete,
+  FormControl,
+  InputLabel,
+  Input,
+  InputAdornment,
+} from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import stockData, { stockFilter } from "../../Store/Slices/stockData";
@@ -17,43 +25,36 @@ export default function SearchCom() {
   const [brand, setBrand] = useState(brandList[0]);
   const [inputValue, setInputValue] = useState("");
   useEffect(() => {
-    if (value === "All") {
+    if (value === "All" && subvalue === "All") {
       //!ALL CATEGORYS
-
       const filterdData = allStocks.filter((item) =>
         item["Product_name"].includes(inputValue)
       );
 
       dispatch(stockFilter(filterdData));
-      console.log("s");
-    } else {
-      //!SELECTED CATEGORYS
-      if (subvalue === "All") {
-        //!NO SUB VALUE
-        const filterdData = inputValue
-          ? allStocks.filter(
-              (item) =>
-                item["Product_name"].includes(inputValue) &&
-                item["Category"].includes(value)
-            )
-          : allStocks.filter((item) => item["Category"].includes(value));
-        dispatch(stockFilter(filterdData));
-        console.log("x");
-      } else {
-        const filterdData = inputValue
-          ? allStocks.filter(
-              (item) =>
-                item["Product_name"].includes(inputValue) &&
-                item["Category"].includes(value) &&
-                item["Sub_Category"].includes(subvalue)
-            )
-          : allStocks;
-        //!WITH SUB VALUE
-        dispatch(stockFilter(filterdData));
-        console.log("cat");
-      }
+    } else if (value !== "All" && subvalue === "All") {
+      //!SELECTED CATEGORYS NO SUB VALUE
+
+      const filterdData = allStocks.filter(
+        (item) =>
+          item["Product_name"].includes(inputValue) &&
+          item["Category"].includes(value)
+      );
+
+      //!WITH SUB VALUE AND CATE VALUE
+      dispatch(stockFilter(filterdData));
+      // console.log("cat");
+    } else if (value !== "All" && subvalue !== "All") {
+      const filterdData = allStocks.filter(
+        (item) =>
+          item["Product_name"].includes(inputValue) &&
+          item["Category"].includes(value) &&
+          item["Sub_Category"].includes(subvalue)
+      );
+
+      dispatch(stockFilter(filterdData));
     }
-  }, [inputValue, value, subvalue]);
+  }, [inputValue, value, subvalue, allStocks]);
 
   useEffect(() => {
     if (StockData) {
@@ -81,8 +82,13 @@ export default function SearchCom() {
     }
   }, [StockData, subvalue, value, brand]);
   return (
-    <div>
-      <Box sx={{ display: "flex", alignItems: "flex-end" }}>
+    <div className="flex items-end pb-2 flex-wrap">
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-end",
+        }}
+      >
         <Search sx={{ color: "action.active", mr: 1, my: 0.5 }} />
         <TextField
           id="input-with-sx"
@@ -92,8 +98,11 @@ export default function SearchCom() {
           onChange={(e) => setInputValue(e.target.value)}
         />
       </Box>
-      <div className="flex my-4">
+
+      <div className="flex flex-wrap pl-0 md:pl-2 md:my-0">
         <Autocomplete
+          className="md:ml-2 ml-0 md:my-0 my-2"
+          size="small"
           value={value === null ? "All" : value}
           onChange={(event, newValue) => {
             setValue(newValue);
@@ -108,7 +117,8 @@ export default function SearchCom() {
           <></>
         ) : (
           <Autocomplete
-            className="ml-2"
+            size="small"
+            className="md:ml-2 ml-0 md:my-0 my-2"
             value={subvalue === null ? "All" : subvalue}
             onChange={(event, newValue) => {
               setsubValue(newValue);

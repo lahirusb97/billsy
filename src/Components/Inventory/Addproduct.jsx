@@ -1,6 +1,7 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect } from "react";
 //*MUI
-import { InputAdornment, TextField } from "@mui/material";
+import { CircularProgress, InputAdornment, TextField } from "@mui/material";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -11,15 +12,17 @@ import { useSelector } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 //* Firebase
-import { getDatabase, ref, child, push, update, set } from "firebase/database";
+import { getDatabase, ref, push, update } from "firebase/database";
 // import { getDatabase, ref, onValue } from "firebase/database";
 
 const BODER_RADIUS = "15px";
 
-export default function Addproduct() {
+export default function Addproduct({ edit, inputdata, setState }) {
   const [age, setAge] = React.useState("");
   const [subCate, setsubCate] = React.useState("");
+  const [loadingState, setloadingState] = React.useState(false);
   const shopData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+
   const shopId = useSelector(
     (state) => state.user_data.CURRENT_SHOP["Shop_id"]
   );
@@ -29,10 +32,7 @@ export default function Addproduct() {
       .string()
       .transform((value) => value.toLowerCase())
       .required("Enter Product Name"),
-    Brand_name: yup
-      .string()
-      .transform((value) => value.toLowerCase())
-      .required("Enter Brand Name"),
+    Brand_name: yup.string().transform((value) => value.toLowerCase()),
     Category: yup
       .string()
       .transform((value) => value.toLowerCase())
@@ -60,29 +60,76 @@ export default function Addproduct() {
     setsubCate(event.target.value);
     setValue("Sub_Category", event.target.value);
   };
-  useEffect(() => {}, []);
 
   const onSubmit = (data) => {
+    setloadingState(true);
     const db = getDatabase();
 
     const productID = push(ref(db, `/System/Inventory/${shopId}/`)).key;
     const newData = { ...data, productID }; // Add productID to the data object
     const updates = {};
-    updates[`/System/Inventory/${shopId}/` + productID] = newData;
+    updates[`/System/Inventory/${shopId}/${productID}/`] = newData;
     update(ref(db), updates)
       .then(() => {
-        console.log("Product added successfully!");
+        setloadingState(false);
+        setState(false);
       })
       .catch((error) => {
+        setloadingState(false);
+
         console.error("Error adding product:", error.message);
       });
   };
+  const EditSubmite = (data) => {
+    setloadingState(true);
+
+    const db = getDatabase();
+
+    const updates = {};
+    updates[`/System/Inventory/${shopId}/${inputdata["productID"]}`] = data;
+    update(ref(db), updates)
+      .then(() => {
+        setloadingState(false);
+
+        setState(false);
+      })
+      .catch((error) => {
+        setloadingState(false);
+      });
+  };
+  useEffect(() => {
+    if (edit) {
+      setValue("Product_name", inputdata["Product_name"]);
+      setValue("Brand_name", inputdata["Brand_name"]);
+      setValue("Category", inputdata["Category"]);
+      setAge(inputdata["Category"]);
+      setValue("Sub_Category", inputdata["Sub_Category"]);
+      setsubCate(inputdata["Sub_Category"]);
+      setValue("Stock_count", inputdata["Stock_count"]);
+      setValue("Alert", inputdata["Alert"]);
+      setValue("Price", inputdata["Price"]);
+      setValue("Note", inputdata["Note"]);
+    } else {
+      setValue("Product_name", "");
+      setValue("Brand_name", "");
+      setValue("Category", "");
+      setAge("");
+      setsubCate("");
+      setValue("");
+      setValue("");
+      setValue("");
+      setValue("");
+    }
+  }, [edit]);
   return (
     <div>
       <h1 className="text-2xl font-bold text-black m-2 text-center">
         Add Product
       </h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="m-2">
+      <form
+        onSubmit={handleSubmit(edit ? EditSubmite : onSubmit)}
+        className="m-2"
+      >
         <div className="bg-my whxite p-2 shadow-md border-grayLite border  bg-mywhite py-4">
           <TextField
             error={errors.Product_name ? true : false}
@@ -91,6 +138,9 @@ export default function Addproduct() {
             placeholder="Item Name"
             InputProps={{ sx: { borderRadius: BODER_RADIUS } }}
             {...register("Product_name", { required: true })}
+            // InputLabelProps={{
+            //   shrink: Boolean(inputdata?.Product_name || errors.Product_name),
+            // }}
           />
           <p className="text-myred font-semibold text-xs italic">
             {errors.Product_name?.message}
@@ -103,7 +153,10 @@ export default function Addproduct() {
             label="Brand Name"
             placeholder="Samsung"
             InputProps={{ sx: { borderRadius: BODER_RADIUS } }}
-            {...register("Brand_name", { required: true })}
+            {...register("Brand_name")}
+            // InputLabelProps={{
+            //   shrink: Boolean(inputdata?.Brand_name || errors.Brand_name),
+            // }}
           />
           <p className="text-myred font-semibold text-xs italic">
             {errors.Brand_name?.message}
@@ -173,6 +226,9 @@ export default function Addproduct() {
               sx: { borderRadius: BODER_RADIUS, marginRight: "1em" },
             }}
             {...register("Stock_count", { required: true })}
+            // InputLabelProps={{
+            //   shrink: Boolean(inputdata?.Product_name || errors.Product_name),
+            // }}
           />
 
           <TextField
@@ -183,6 +239,9 @@ export default function Addproduct() {
             placeholder="Stock Alert Limit"
             InputProps={{ sx: { borderRadius: BODER_RADIUS } }}
             {...register("Alert", { required: true })}
+            // InputLabelProps={{
+            //   shrink: Boolean(inputdata?.Product_name || errors.Product_name),
+            // }}
           />
           <p className="text-myred font-semibold text-xs italic">
             {errors.Stock_count ? "Enter How much Number of Items Adding " : ""}
@@ -206,6 +265,9 @@ export default function Addproduct() {
               sx: { borderRadius: BODER_RADIUS, marginRight: "1em" },
             }}
             {...register("Price", { required: true })}
+            // InputLabelProps={{
+            //   shrink: Boolean(inputdata?.Product_name || errors.Product_name),
+            // }}
           />
           <p className="text-myred font-semibold text-xs italic">
             {errors.Price ? "Enter Item Price" : ""}
@@ -221,14 +283,21 @@ export default function Addproduct() {
             placeholder="Aditional Note"
             InputProps={{ sx: { borderRadius: BODER_RADIUS } }}
             {...register("Note")}
+            // InputLabelProps={{
+            //   shrink: Boolean(inputdata?.Product_name || errors.Product_name),
+            // }}
           />
         </div>
+        {/* {loadingState ? (
+          <CircularProgress />
+        ) : ( */}
         <button
           type="submit"
           className="w-full py-4 bg-purple text-mywhite font-semibold border border-purplelite mt-2"
         >
           Add Item
         </button>
+        {/* )} */}
       </form>
     </div>
   );

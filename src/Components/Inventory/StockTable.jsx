@@ -87,7 +87,12 @@ TablePaginationActions.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
 };
 
-export default function CustomPaginationActionsTable() {
+export default function CustomPaginationActionsTable({
+  state,
+  setState,
+  setEdit,
+  edit,
+}) {
   const ALL_STOCKS = useSelector((state) => state.stock_data.FILTER_STOCK);
 
   const [page, setPage] = React.useState(0);
@@ -113,37 +118,37 @@ export default function CustomPaginationActionsTable() {
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, paginatedData.length);
 
   const columns = [
-    { id: "name", label: "Name", minWidth: 100 },
+    { id: "name", label: "Name", minWidth: 100, align: "left" },
 
     {
       id: "code",
       label: "Price",
-      align: "right",
+      align: "left",
       minWidth: 50,
       format: (value) => value.toLocaleString("en-US"),
     },
-    { id: "subcat", label: "Sub Category", minWidth: 100 },
-    { id: "Category", label: "Category", minWidth: 100 },
-    { id: "Brand", label: "Brand", minWidth: 100 },
+    { id: "subcat", label: "Sub Category", minWidth: 100, align: "left" },
+    { id: "Category", label: "Category", minWidth: 100, align: "left" },
+    { id: "Brand", label: "Brand", minWidth: 100, align: "left" },
 
     {
-      id: "population",
+      id: "Stock",
       label: "Stock",
       minWidth: 50,
-      align: "right",
+      align: "left",
       format: (value) => value.toLocaleString("en-US"),
     },
     {
-      id: "size",
+      id: "Alert",
       label: "Alert",
       minWidth: 40,
-      align: "right",
+      align: "left",
     },
     {
-      id: "density",
+      id: "Cost",
       label: "Cost",
       minWidth: 50,
-      align: "right",
+      align: "left",
       format: (value) => value.toLocaleString("en-US"),
     },
   ];
@@ -179,17 +184,21 @@ export default function CustomPaginationActionsTable() {
         <TableBody>
           {paginatedData.map((row) => (
             <TableRow
+              onClick={() => {
+                setState(true);
+                setEdit(true, row);
+              }}
               key={row.productID}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
-              <TableCell>{row.Product_name}</TableCell>
-              <TableCell align="right">{row.Price}</TableCell>
-              <TableCell>{row.Sub_Category}</TableCell>
-              <TableCell>{row.Category}</TableCell>
-              <TableCell>{row.Brand}</TableCell>
-              <TableCell align="right">{row.Stock_count}</TableCell>
-              <TableCell align="right">{row.Alert}</TableCell>
-              <TableCell align="right">{row.Price}</TableCell>
+              <TableCell align="left">{row.Product_name}</TableCell>
+              <TableCell align="left">{row.Price}</TableCell>
+              <TableCell align="left">{row.Sub_Category}</TableCell>
+              <TableCell align="left">{row.Category}</TableCell>
+              <TableCell align="left">{row.Brand_name}</TableCell>
+              <TableCell align="left">{row.Stock_count}</TableCell>
+              <TableCell align="left">{row.Alert}</TableCell>
+              <TableCell align="left">RS: {row.Price}</TableCell>
             </TableRow>
           ))}
 

@@ -379,16 +379,18 @@ export default function NavBar() {
             </ListItem>
           </List>
         </Drawer>
-        <Box
-          ref={mainbox_width}
-          component="main"
-          className="bg-mymainbg w-full h-screen"
-          sx={{ flexGrow: 1, p: 0 }}
-        >
-          <DrawerHeader />
+        <div className="bg-mymainbg w-full h-screen">
+          <Box
+            ref={mainbox_width}
+            component="main"
+            className="bg-mymainbg w-full h-screen"
+            sx={{ flexGrow: 1, p: 0, maxWidth: "1920px" }}
+          >
+            <DrawerHeader />
 
-          <MainRoutes />
-        </Box>
+            <MainRoutes />
+          </Box>
+        </div>
       </Box>
     </AnimateRoute>
   );
