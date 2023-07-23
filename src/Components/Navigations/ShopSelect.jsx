@@ -4,15 +4,31 @@ import { setCurrentShop } from "../../Store/Slices/userDataSlice";
 import { useState, useEffect } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { CheckCircle } from "@mui/icons-material";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { getDatabase, ref, onValue } from "firebase/database";
-import { setStock } from "../../Store/Slices/stockData";
-
+import {
+  setCategory,
+  setStock,
+  stockFilter,
+} from "../../Store/Slices/stockData";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getFirestore,
+  getDocs,
+} from "firebase/firestore";
+import RegisterShop from "../Settings/RegisterShop";
+import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 export default function ShopSelect() {
   const authId = useSelector((state) => state.user_data.authData);
+  const userData = useSelector((state) => state.user_data.userData);
+
   const [shopList, setShopList] = useState([]);
+  const [shops, setshops] = useState(false);
   const [selected, setSelected] = useState("");
   const dispatch = useDispatch();
+
   useEffect(() => {
     const getNestedDocs = async () => {
       try {
@@ -35,15 +51,39 @@ export default function ShopSelect() {
           }
         });
         setShopList(nestedDocsData);
+        setshops(nestedDocsData.length > 0 ? false : true);
         // Access the nested documents data array
       } catch (error) {
-        console.error("Error retrieving nested documents:", error);
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "error",
+            msg: "Check Your Internet",
+          })
+        );
       }
     };
 
     getNestedDocs();
   }, []);
   const handleShopSelect = (e) => {
+    const getShopData = async () => {
+      const db = getFirestore();
+      const q = query(
+        collection(db, "Shop"),
+        where("Shop_id", "==", e["Shop_id"])
+      );
+      onSnapshot(q, (querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const docId = doc.id;
+
+          dispatch(setCategory({ id: docId, ...data }));
+        });
+      });
+    };
+    getShopData();
+
     const db = getDatabase();
     const starCountRef = ref(db, "/System/Inventory/" + e["Shop_id"]);
     onValue(starCountRef, (snapshot) => {
@@ -57,68 +97,81 @@ export default function ShopSelect() {
           setCurrentShop({ curentShop: e, Spswitch: true, shopList: shopList })
         );
         dispatch(setStock(allStocks));
+        dispatch(stockFilter(allStocks));
+      } else {
+        dispatch(
+          setCurrentShop({ curentShop: e, Spswitch: true, shopList: shopList })
+        );
+        dispatch(setStock([]));
+        dispatch(stockFilter([]));
       }
     });
   };
   return (
     <div className="w-full h-screen flex items-center justify-center">
-      <div className="mx-auto w-full max-w-md">
-        <h1 className="font-bold uppercase text-4xl text-black text-center mb-4">
-          Seclect Your Shop
-        </h1>
-        <RadioGroup value={selected} onChange={handleShopSelect}>
-          <RadioGroup.Label className="sr-only">Server size</RadioGroup.Label>
-          <div className="space-y-2">
-            {shopList.map((plan) => (
-              <RadioGroup.Option
-                key={plan.Name}
-                value={plan}
-                className={({ active, checked }) =>
-                  `${
-                    active
-                      ? "ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-sky-300"
-                      : ""
-                  }
+      {shopList.length > 0 ? (
+        <div className="mx-auto w-full max-w-md">
+          <h1 className="font-bold uppercase text-4xl text-black text-center mb-4">
+            Seclect Your Shop
+          </h1>
+          <RadioGroup value={selected} onChange={handleShopSelect}>
+            <RadioGroup.Label className="sr-only">Server size</RadioGroup.Label>
+            <div className="space-y-2">
+              {shopList.map((plan) => (
+                <RadioGroup.Option
+                  key={plan.Name}
+                  value={plan}
+                  className={({ active, checked }) =>
+                    `${
+                      active
+                        ? "ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-sky-300"
+                        : ""
+                    }
                   ${
                     checked ? "bg-sky-900 bg-opacity-75 text-white" : "bg-white"
                   }
                     relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md focus:outline-none`
-                }
-              >
-                {({ active, checked }) => (
-                  <>
-                    <div className="flex w-full items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="text-sm">
-                          <RadioGroup.Label
-                            as="p"
-                            className={`font-medium  ${
-                              checked ? "text-white" : "text-gray-900"
-                            }`}
-                          >
-                            {plan.Name}
-                          </RadioGroup.Label>
-                          <RadioGroup.Description
-                            as="span"
-                            className={`inline ${
-                              checked ? "text-sky-100" : "text-gray-500"
-                            }`}
-                          ></RadioGroup.Description>
+                  }
+                >
+                  {({ active, checked }) => (
+                    <>
+                      <div className="flex w-full items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="text-sm">
+                            <RadioGroup.Label
+                              as="p"
+                              className={`font-medium  ${
+                                checked ? "text-white" : "text-gray-900"
+                              }`}
+                            >
+                              {plan.Name}
+                            </RadioGroup.Label>
+                            <RadioGroup.Description
+                              as="span"
+                              className={`inline ${
+                                checked ? "text-sky-100" : "text-gray-500"
+                              }`}
+                            ></RadioGroup.Description>
+                          </div>
                         </div>
+                        {checked && (
+                          <div className="shrink-0 text-white">
+                            <CheckCircle className="h-6 w-6" />
+                          </div>
+                        )}
                       </div>
-                      {checked && (
-                        <div className="shrink-0 text-white">
-                          <CheckCircle className="h-6 w-6" />
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </RadioGroup.Option>
-            ))}
-          </div>
-        </RadioGroup>
-      </div>
+                    </>
+                  )}
+                </RadioGroup.Option>
+              ))}
+            </div>
+          </RadioGroup>
+        </div>
+      ) : shopList.length === 0 && shops ? (
+        <RegisterShop />
+      ) : (
+        <></>
+      )}
     </div>
   );
 }

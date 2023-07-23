@@ -16,6 +16,7 @@ export default function SearchCom() {
   const dispatch = useDispatch();
   const StockData = useSelector((state) => state.stock_data.CATEGORY_DATA);
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
+  // const CURRENT_SHOP = useSelector((state) => state.user_data.CURRENT_SHOP);
 
   const [mainCategory, setmainCategory] = useState(["All"]);
   const [subCategory, setsubCategory] = useState(["All"]);
@@ -24,62 +25,63 @@ export default function SearchCom() {
   const [subvalue, setsubValue] = useState(subCategory[0]);
   const [brand, setBrand] = useState(brandList[0]);
   const [inputValue, setInputValue] = useState("");
+
   useEffect(() => {
-    if (value === "All" && subvalue === "All") {
-      //!ALL CATEGORYS
-      const filterdData = allStocks.filter((item) =>
-        item["Product_name"].includes(inputValue)
-      );
+    if (allStocks.length > 0) {
+      if (value === "All" && subvalue === "All") {
+        //!ALL CATEGORYS
+        const filterdData = allStocks.filter((item) =>
+          item["Product_name"].includes(inputValue)
+        );
 
-      dispatch(stockFilter(filterdData));
-    } else if (value !== "All" && subvalue === "All") {
-      //!SELECTED CATEGORYS NO SUB VALUE
+        dispatch(stockFilter(filterdData));
+      } else if (value !== "All" && subvalue === "All") {
+        //!SELECTED CATEGORYS NO SUB VALUE
 
-      const filterdData = allStocks.filter(
-        (item) =>
-          item["Product_name"].includes(inputValue) &&
-          item["Category"].includes(value)
-      );
+        const filterdData = allStocks.filter(
+          (item) =>
+            item["Product_name"].includes(inputValue) &&
+            item["Category"].includes(value)
+        );
 
-      //!WITH SUB VALUE AND CATE VALUE
-      dispatch(stockFilter(filterdData));
-      // console.log("cat");
-    } else if (value !== "All" && subvalue !== "All") {
-      const filterdData = allStocks.filter(
-        (item) =>
-          item["Product_name"].includes(inputValue) &&
-          item["Category"].includes(value) &&
-          item["Sub_Category"].includes(subvalue)
-      );
+        //!WITH SUB VALUE AND CATE VALUE
+        dispatch(stockFilter(filterdData));
+      } else if (value !== "All" && subvalue !== "All") {
+        const filterdData = allStocks.filter(
+          (item) =>
+            item["Product_name"].includes(inputValue) &&
+            item["Category"].includes(value) &&
+            item["Sub_Category"].includes(subvalue)
+        );
 
-      dispatch(stockFilter(filterdData));
+        dispatch(stockFilter(filterdData));
+      }
     }
   }, [inputValue, value, subvalue, allStocks]);
 
   useEffect(() => {
-    if (StockData) {
-      const catArray1 = ["All"];
-      StockData["Category"].forEach((e) => catArray1.push(e));
-      setmainCategory(catArray1);
-      // setValue(mainCategory[0]);
-
-      const catArray = ["All"];
-      if (StockData[value]) {
-        StockData[value].forEach((e) => catArray.push(e));
-        setsubCategory(catArray);
-      } else {
-        setsubCategory(["All"]);
-        setsubValue(subCategory[0]);
-      }
-      if (StockData["Brand"]) {
-        const catArray1 = ["All"];
-        StockData["Brand"].forEach((e) => catArray1.push(e));
-        setbrandList(catArray1);
-      } else {
-        setbrandList(["All"]);
-        setBrand(brandList[0]);
-      }
-    }
+    // if (StockData) {
+    //   const catArray1 = ["All"];
+    //   StockData["Category"].forEach((e) => catArray1.push(e));
+    //   setmainCategory(catArray1);
+    //   // setValue(mainCategory[0]);
+    //   const catArray = ["All"];
+    //   if (StockData[value]) {
+    //     StockData[value].forEach((e) => catArray.push(e));
+    //     setsubCategory(catArray);
+    //   } else {
+    //     setsubCategory(["All"]);
+    //     setsubValue(subCategory[0]);
+    //   }
+    //   if (StockData["Brand"]) {
+    //     const catArray1 = ["All"];
+    //     StockData["Brand"].forEach((e) => catArray1.push(e));
+    //     setbrandList(catArray1);
+    //   } else {
+    //     setbrandList(["All"]);
+    //     setBrand(brandList[0]);
+    //   }
+    // }
   }, [StockData, subvalue, value, brand]);
   return (
     <div className="flex items-end pb-2 flex-wrap">

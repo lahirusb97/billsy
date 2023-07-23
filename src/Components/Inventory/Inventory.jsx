@@ -1,43 +1,10 @@
 import AnimateRoute from "../Navigations/AnimateRoute";
 import { Tab } from "@headlessui/react";
-import { Fragment, useEffect } from "react";
-import { TextField } from "@mui/material";
 import Stocks from "./Stocks";
 import InventorySettings from "./InventorySettings";
 import { Settings } from "@mui/icons-material";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  getFirestore,
-} from "firebase/firestore";
-import { useDispatch, useSelector } from "react-redux";
-import { setCategory } from "../../Store/Slices/stockData";
 
 export default function Inventory() {
-  const dispatch = useDispatch();
-  const shop_Id = useSelector(
-    (state) => state.user_data.CURRENT_SHOP["Shop_id"]
-  );
-
-  useEffect(() => {
-    const getShopData = async () => {
-      const db = getFirestore();
-      const q = query(collection(db, "Shop"), where("Shop_id", "==", shop_Id));
-      onSnapshot(q, (querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const docId = doc.id;
-          dispatch(setCategory({ id: docId, ...data }));
-        });
-
-        // console.log(shops);
-      });
-    };
-    getShopData();
-  }, [shop_Id]);
-
   return (
     <AnimateRoute>
       {

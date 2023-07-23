@@ -13,21 +13,35 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { useSelector } from "react-redux";
-import { AddCircle, RemoveCircle } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { AddCircle, Delete, RemoveCircle } from "@mui/icons-material";
 import { Button, Modal, TextField } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { getFirestore, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+} from "firebase/firestore";
+import { getDatabase, ref, onValue, remove, child } from "firebase/database";
+import { openScackbar } from "../../Store/Slices/SnackBarSlice";
+
 function Row(props) {
   const { row } = props;
   const [open, setOpen] = React.useState(false);
   const [open2, setOpen2] = React.useState(false);
+
   const [inputcate, setinputcate] = React.useState("");
-  const handleOpen = () => setOpen2(true);
+  const handleOpen = () => (Stock_manage ? setOpen2(true) : setOpen2(false));
   const handleClose = () => setOpen2(false);
   const StockData = useSelector((state) => state.stock_data.CATEGORY_DATA);
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
-
+  const Stock_manage = useSelector(
+    (state) => state.user_data.userData["Stock_manage"]
+  );
+  const all_data = useSelector((state) => state.user_data.CURRENT_SHOP);
+  const dispatch = useDispatch();
   const addSubCategory = () => {
     const db = getFirestore();
     const cat = row["category"];
@@ -41,18 +55,96 @@ function Row(props) {
     // Use the 'arrayUnion' function to add the newData to the 'dataArray' field in your document
     updateDoc(collectionRef, {
       [cat]: arrayUnion(newData),
-    });
+    })
+      .then(() => {
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "success",
+            msg: `Sub Category Added `,
+          })
+        );
+      })
+      .catch((e) => {
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "warning",
+            msg: e,
+          })
+        );
+      });
   };
   //!
-  const removeSubCate = (sub) => {
-    const filterdData = allStocks.filter((item) =>
-      item["Sub_Category"].includes(sub["sub_category_name"])
-    );
-    console.log(filterdData);
+  const removeSubCate = async (sub, index) => {
+    if (Stock_manage) {
+      const filterdData = allStocks.filter((item) =>
+        item["Sub_Category"].includes(sub["sub_category_name"])
+      );
+      try {
+        const db = getDatabase(); // Make sure getDatabase() is defined and returns a valid database reference
+        const shopId = StockData["Shop_id"]; // Make sure StockData is defined and contains the "Shop_id" property
+        const fdb = getFirestore();
+
+        // const dbArrayRef = doc(fdb, `/Shop/${shopId}`, sub["main_cate"]);
+        const dbArrayRef = doc(fdb, "Shop", StockData.id);
+        //!REMOVE ITEM START
+        const removePromises = filterdData.map(async (element) => {
+          const databaseRef = ref(
+            db,
+            `/System/Inventory/${shopId}/${element["productID"]}/`
+          );
+
+          return remove(databaseRef);
+        });
+        await Promise.all(removePromises);
+        //! REMOVE ITEM END
+
+        await updateDoc(dbArrayRef, {
+          // mainCate: arrayRemove(sub["sub_category_name"]),
+          [sub["main_cate"]]: arrayRemove(sub["sub_category_name"]),
+        });
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "success",
+            msg: `Delete Complete`,
+          })
+        );
+      } catch (error) {
+        // Handle any errors that might occur during the asynchronous operations
+
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "success",
+            msg: error.message,
+          })
+        );
+      }
+    }
+  };
+
+  const removeAllCate = (s) => {
+    console.log(s);
+
+    // try {
+    // } catch (error) {
+    //   dispatch(
+    //     openScackbar({
+    //       open: true,
+    //       type: "success",
+    //       msg: error,
+    //     })
+    //   );
+    // }
   };
   return (
     <React.Fragment>
-      <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
+      <TableRow
+        className="capitalize"
+        sx={{ "& > *": { borderBottom: "unset" } }}
+      >
         <TableCell>
           <IconButton
             aria-label="expand row"
@@ -68,6 +160,12 @@ function Row(props) {
 
         <TableCell align="left">{row.sub_category}</TableCell>
         <TableCell align="left">{row.total}</TableCell>
+        <TableCell align="left" size="small" aria-label="expand row">
+          <Delete
+            onClick={() => removeAllCate(row.category)}
+            className="text-red cursor-pointer"
+          />
+        </TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -192,6 +290,9 @@ Row.propTypes = {
 export default function CollapsibleTable() {
   const StockData = useSelector((state) => state.stock_data.CATEGORY_DATA);
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
+  const Stock_manage = useSelector(
+    (state) => state.user_data.userData["Stock_manage"]
+  );
   const [rows, setrows] = React.useState([]);
 
   React.useEffect(() => {
@@ -206,7 +307,11 @@ export default function CollapsibleTable() {
           const subItemTotal = allStocks.filter((item) =>
             item["Sub_Category"].includes(sub)
           );
-          subdata.push({ sub_category_name: sub, total: subItemTotal.length });
+          subdata.push({
+            main_cate: cate,
+            sub_category_name: sub,
+            total: subItemTotal.length,
+          });
           toalItem += subItemTotal.length;
         });
         subtotal = subcount.length;
@@ -219,11 +324,10 @@ export default function CollapsibleTable() {
       });
       setrows(MainData);
     });
-    // console.log("check");
   }, [StockData, allStocks]);
   const [open, setOpen] = React.useState(false);
   const [inputcate, setinputcate] = React.useState("");
-  const handleOpen = () => setOpen(true);
+  const handleOpen = () => (Stock_manage ? setOpen(true) : setOpen(false));
   const handleClose = () => setOpen(false);
   //!addCategory
   const addCategory = () => {
@@ -262,9 +366,10 @@ export default function CollapsibleTable() {
             </TableCell>
             <TableCell align="left">Sub Categorys </TableCell>
             <TableCell align="left">Total Product</TableCell>
+            <TableCell style={{ width: "10px" }} />
           </TableRow>
         </TableHead>
-        <TableBody>
+        <TableBody className="capitalize">
           {rows.map((row) => (
             <Row key={row.category} row={row} />
           ))}

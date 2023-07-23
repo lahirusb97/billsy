@@ -13,6 +13,8 @@ import LoginProtectedRoute from "./Components/Navigations/LoginProtectedRoute";
 //ANIMATION
 import LoadingAni from "./assets/Animations/LoadingAni.json";
 import Lottie from "react-lottie";
+import SnacBar from "./Components/Component/SnacBar";
+import ConfirmModal from "./Components/Component/ConfirmModal";
 //Router
 
 function App() {
@@ -69,6 +71,8 @@ function App() {
           </div>
         </div>
       )}
+      <SnacBar />
+      <ConfirmModal />
     </div>
   );
 }

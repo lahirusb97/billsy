@@ -121,16 +121,19 @@ export default function CustomPaginationActionsTable({
     { id: "name", label: "Name", minWidth: 100, align: "left" },
 
     {
-      id: "code",
+      id: "price",
       label: "Price",
       align: "left",
       minWidth: 50,
       format: (value) => value.toLocaleString("en-US"),
     },
-    { id: "subcat", label: "Sub Category", minWidth: 100, align: "left" },
-    { id: "Category", label: "Category", minWidth: 100, align: "left" },
-    { id: "Brand", label: "Brand", minWidth: 100, align: "left" },
-
+    {
+      id: "cost",
+      label: "Cost",
+      align: "left",
+      minWidth: 50,
+      format: (value) => value.toLocaleString("en-US"),
+    },
     {
       id: "Stock",
       label: "Stock",
@@ -138,20 +141,13 @@ export default function CustomPaginationActionsTable({
       align: "left",
       format: (value) => value.toLocaleString("en-US"),
     },
-    {
-      id: "Alert",
-      label: "Alert",
-      minWidth: 40,
-      align: "left",
-    },
-    {
-      id: "Cost",
-      label: "Cost",
-      minWidth: 50,
-      align: "left",
-      format: (value) => value.toLocaleString("en-US"),
-    },
+    { id: "subcat", label: "Sub Category", minWidth: 100, align: "left" },
+    { id: "Category", label: "Category", minWidth: 100, align: "left" },
+    { id: "Brand", label: "Brand", minWidth: 100, align: "left" },
   ];
+  const Stock_manage = useSelector(
+    (state) => state.user_data.userData["Stock_manage"]
+  );
 
   return (
     <TableContainer component={Paper}>
@@ -182,25 +178,42 @@ export default function CustomPaginationActionsTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {paginatedData.map((row) => (
-            <TableRow
-              onClick={() => {
-                setState(true);
-                setEdit(true, row);
-              }}
-              key={row.productID}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              <TableCell align="left">{row.Product_name}</TableCell>
-              <TableCell align="left">{row.Price}</TableCell>
-              <TableCell align="left">{row.Sub_Category}</TableCell>
-              <TableCell align="left">{row.Category}</TableCell>
-              <TableCell align="left">{row.Brand_name}</TableCell>
-              <TableCell align="left">{row.Stock_count}</TableCell>
-              <TableCell align="left">{row.Alert}</TableCell>
-              <TableCell align="left">RS: {row.Price}</TableCell>
+          {ALL_STOCKS.length > 0 ? (
+            paginatedData.map((row) => (
+              <TableRow
+                onClick={() => {
+                  if (Stock_manage) {
+                    setState(true);
+                    setEdit(true, row);
+                  } else {
+                    setState(false);
+                    setEdit(false, {});
+                  }
+                }}
+                key={row.productID}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell align="left">{row.Product_name}</TableCell>
+                <TableCell align="left">Rs: {row.Price}</TableCell>
+                <TableCell align="left">RS: {row.Cost}</TableCell>
+                <TableCell align="left">{row.Stock_count}</TableCell>
+                <TableCell align="left">{row.Sub_Category}</TableCell>
+                <TableCell align="left">{row.Category}</TableCell>
+                <TableCell align="left">{row.Brand_name}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={columns.length}
+                rowSpan={8}
+                align="center"
+                className="centered-cell"
+              >
+                No Items are added
+              </TableCell>
             </TableRow>
-          ))}
+          )}
 
           {emptyRows > 0 && (
             <TableRow style={{ height: 53 * emptyRows }}>

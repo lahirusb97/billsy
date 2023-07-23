@@ -22,7 +22,7 @@ export const userDataSlice = createSlice({
       state.authData = auth;
       state.acess = user["Access"];
     },
-    setCurrentShop: (state, action) => {
+    setCurrentShop: (state, action) => {  
       const { curentShop, Spswitch, shopList } = action.payload;
 
       state.CURRENT_SHOP = curentShop;

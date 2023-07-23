@@ -8,11 +8,12 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 
 import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 //* Firebase
 import { getDatabase, ref, push, update } from "firebase/database";
+import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 // import { getDatabase, ref, onValue } from "firebase/database";
 
 const BODER_RADIUS = "15px";
@@ -21,7 +22,10 @@ export default function Addproduct({ setState }) {
   const [age, setAge] = React.useState("");
   const [subCate, setsubCate] = React.useState("");
   const [loadingState, setloadingState] = React.useState(false);
+  const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
   const shopData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+
+  const dispatch = useDispatch();
 
   const shopId = useSelector(
     (state) => state.user_data.CURRENT_SHOP["Shop_id"]
@@ -44,12 +48,14 @@ export default function Addproduct({ setState }) {
     Stock_count: yup.number().required("Enter Item Count"),
     Alert: yup.number().required("Enter Alert Count"),
     Price: yup.number().required("Enter Item Price"),
+    Cost: yup.number().required("Enter Item Cost"),
     Note: yup.string().transform((value) => value.toLowerCase()),
   });
   const {
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
   const handleChange = (event) => {
@@ -63,22 +69,45 @@ export default function Addproduct({ setState }) {
 
   const onSubmit = (data) => {
     setloadingState(true);
-    const db = getDatabase();
 
-    const productID = push(ref(db, `/System/Inventory/${shopId}/`)).key;
-    const newData = { ...data, productID }; // Add productID to the data object
-    const updates = {};
-    updates[`/System/Inventory/${shopId}/${productID}/`] = newData;
-    update(ref(db), updates)
-      .then(() => {
-        setloadingState(false);
-        setState(false);
-      })
-      .catch((error) => {
-        setloadingState(false);
-
-        console.error("Error adding product:", error.message);
+    const allStocksz = allStocks.filter(
+      (item) => item["Product_name"] === data["Product_name"]
+    );
+    if (allStocksz.length > 0) {
+      setloadingState(false);
+      setError("Product_name", {
+        type: "manual",
+        message: `${data["Product_name"]} Already exists `,
       });
+      dispatch(
+        openScackbar({
+          open: true,
+          type: "warning",
+          msg: `${data["Product_name"]} Already exists `,
+        })
+      );
+    } else {
+      setloadingState(true);
+      const db = getDatabase();
+      const productID = push(ref(db, `/System/Inventory/${shopId}/`)).key;
+      const newData = { ...data, productID }; // Add productID to the data object
+      const updates = {};
+      updates[`/System/Inventory/${shopId}/${productID}/`] = newData;
+      update(ref(db), updates)
+        .then(() => {
+          setloadingState(false);
+          setState(false);
+          dispatch(
+            openScackbar({ open: true, type: "success", msg: "New item Added" })
+          );
+        })
+        .catch((error) => {
+          setloadingState(false);
+          dispatch(
+            openScackbar({ open: true, type: "error", msg: error.message })
+          );
+        });
+    }
   };
 
   return (
@@ -154,9 +183,7 @@ export default function Addproduct({ setState }) {
                     </MenuItem>
                   ))
                 ) : (
-                  <MenuItem key={"s"} value={"empty"}>
-                    empty
-                  </MenuItem>
+                  <MenuItem key={"s"}>No Data</MenuItem>
                 )}
               </Select>
             </FormControl>
@@ -196,13 +223,13 @@ export default function Addproduct({ setState }) {
           </p>
         </div>
 
-        <div className="bg-my white px-2 shadow-md border-grayLite border  mt-4 bg-mywhite flex justify-center items-center flex-col">
+        <div className="bg-my white px-2 shadow-md border-grayLite border  mt-4 bg-mywhite flex justify-center items-center">
           <TextField
             error={errors.Price ? true : false}
             style={{ margin: "1em auto" }}
             type="number"
             label="Price"
-            placeholder="Item Name"
+            placeholder="Item Cost"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">RS</InputAdornment>
@@ -213,6 +240,23 @@ export default function Addproduct({ setState }) {
           />
           <p className="text-myred font-semibold text-xs italic">
             {errors.Price ? "Enter Item Price" : ""}
+          </p>
+          <TextField
+            error={errors.Price ? true : false}
+            style={{ margin: "1em auto" }}
+            type="number"
+            label="Cost"
+            placeholder="Item Cost"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">RS</InputAdornment>
+              ),
+              sx: { borderRadius: BODER_RADIUS, marginRight: "1em" },
+            }}
+            {...register("Cost", { required: true })}
+          />
+          <p className="text-myred font-semibold text-xs italic">
+            {errors.Cost ? "Enter Item Cost" : ""}
           </p>
         </div>
         <div className="bg-my white px-2 shadow-md border-grayLite border  mt-4 bg-mywhite py-4">

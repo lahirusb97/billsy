@@ -1,20 +1,31 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect } from "react";
 //*MUI
-import { CircularProgress, InputAdornment, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  InputAdornment,
+  Modal,
+  TextField,
+  Typography,
+} from "@mui/material";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 
 import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 //* Firebase
-import { getDatabase, ref, push, update } from "firebase/database";
+import { getDatabase, ref, update, remove } from "firebase/database";
+import { Delete } from "@mui/icons-material";
+import { openScackbar } from "../../Store/Slices/SnackBarSlice";
+import SnacBar from "../Component/SnacBar";
+import { setStock, stockFilter } from "../../Store/Slices/stockData";
 // import { getDatabase, ref, onValue } from "firebase/database";
-
 const BODER_RADIUS = "15px";
 
 export default function EditProduct({ edit, inputdata, setState }) {
@@ -22,7 +33,9 @@ export default function EditProduct({ edit, inputdata, setState }) {
   const [subCate, setsubCate] = React.useState("");
   const [loadingState, setloadingState] = React.useState(false);
   const shopData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+  const ALL_STOCKS = useSelector((state) => state.stock_data.ALL_STOCKS);
 
+  const dispatch = useDispatch();
   const shopId = useSelector(
     (state) => state.user_data.CURRENT_SHOP["Shop_id"]
   );
@@ -50,6 +63,7 @@ export default function EditProduct({ edit, inputdata, setState }) {
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
   const handleChange = (event) => {
@@ -62,21 +76,46 @@ export default function EditProduct({ edit, inputdata, setState }) {
   };
 
   const EditSubmite = (data) => {
+    const allStocksz = ALL_STOCKS.filter(
+      (item) =>
+        item["Product_name"] === data["Product_name"] &&
+        inputdata["productID"] !== item["productID"]
+    );
+    console.log(allStocksz);
     setloadingState(true);
-
-    const db = getDatabase();
-
-    const updates = {};
-    updates[`/System/Inventory/${shopId}/${inputdata["productID"]}`] = data;
-    update(ref(db), updates)
-      .then(() => {
-        setloadingState(false);
-
-        setState(false);
-      })
-      .catch((error) => {
-        setloadingState(false);
+    if (allStocksz.length > 0) {
+      setloadingState(false);
+      setError("Product_name", {
+        type: "manual",
+        message: `${data["Product_name"]} Already exists `,
       });
+      dispatch(
+        openScackbar({
+          open: true,
+          type: "warning",
+          msg: `${data["Product_name"]} Already exists `,
+        })
+      );
+    } else {
+      const db = getDatabase();
+      const newData = { ...data, productID: inputdata.productID };
+      const updates = {};
+      updates[`/System/Inventory/${shopId}/${inputdata["productID"]}`] =
+        newData;
+      update(ref(db), updates)
+        .then(() => {
+          setloadingState(false);
+          setState(false);
+          setState(false);
+          dispatch(openScackbar({ open: true, type: "success", msg: "Saved" }));
+        })
+        .catch((error) => {
+          setloadingState(false);
+          dispatch(
+            openScackbar({ open: true, type: "error", msg: error.message })
+          );
+        });
+    }
   };
   useEffect(() => {
     setValue("Product_name", inputdata["Product_name"]);
@@ -90,11 +129,78 @@ export default function EditProduct({ edit, inputdata, setState }) {
     setValue("Price", inputdata["Price"]);
     setValue("Note", inputdata["Note"]);
   }, [edit]);
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const handleDelete = () => {
+    try {
+      // Get a reference to the item you want to delete
+      const db = getDatabase();
+
+      const itemRef = ref(
+        db,
+        `/System/Inventory/${shopId}/${inputdata["productID"]}`
+      );
+
+      // Call the remove() function to delete the item
+      remove(itemRef).then(() => {
+        if (ALL_STOCKS.length == 1) {
+          dispatch(setStock([]));
+          dispatch(stockFilter([]));
+        }
+        setState(false);
+
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "success",
+            msg: "Item delete completed",
+          })
+        );
+      });
+    } catch (error) {
+      dispatch(openScackbar({ open: true, type: "error", msg: error.message }));
+    }
+  };
   return (
     <div>
       <h1 className="text-2xl font-bold text-black m-2 text-center">
         Edit Product
       </h1>
+
+      <button onClick={handleOpen} className="my-0 mx-auto block">
+        <Delete className="text-red scale-150" />
+      </button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <h1 className="font-semibold">
+            Do you want to delete{" "}
+            <span className="text-purple font-bold">
+              {inputdata["Product_name"]}
+            </span>{" "}
+            Item?
+          </h1>
+          <div className="flex justify-around">
+            <button
+              onClick={handleClose}
+              className="bg-mygreen  font-semibold px-4 py-2"
+            >
+              No
+            </button>
+            <button
+              onClick={handleDelete}
+              className="bg-myredlite font-semibold  px-4 py-2"
+            >
+              Delete
+            </button>
+          </div>
+        </Box>
+      </Modal>
       <form onSubmit={handleSubmit(EditSubmite)} className="m-2">
         <div className="bg-my whxite p-2 shadow-md border-grayLite border  bg-mywhite py-4">
           <TextField
@@ -263,8 +369,20 @@ export default function EditProduct({ edit, inputdata, setState }) {
         >
           Add Item
         </button>
+
         {/* )} */}
       </form>
     </div>
   );
 }
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};

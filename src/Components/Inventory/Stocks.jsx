@@ -29,6 +29,9 @@ export default function Stocks() {
     setEdit(editSw);
     setInputdata(data);
   };
+  const Stock_manage = useSelector(
+    (state) => state.user_data.userData["Stock_manage"]
+  );
 
   return (
     <div>
@@ -43,15 +46,19 @@ export default function Stocks() {
           )
         }
       />
-      <button
-        className="bg-greendark text-mywhite mt-2 py-2 px-4 mb-2"
-        onClick={() => {
-          setState(true);
-          setEdit(false);
-        }}
-      >
-        Add Product
-      </button>
+      {Stock_manage ? (
+        <button
+          className="bg-greendark text-mywhite mt-2 py-2 px-4 mb-2"
+          onClick={() => {
+            setState(true);
+            setEdit(false);
+          }}
+        >
+          Add Product
+        </button>
+      ) : (
+        <></>
+      )}
       <SearchCom />
 
       <StockTable
