@@ -11,8 +11,9 @@ import {
 import { Search } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import stockData, { stockFilter } from "../../Store/Slices/stockData";
+import { searchInvoiceItems } from "../../Store/Slices/InvoiceSlice";
 
-export default function SearchCom() {
+export default function ItemSearch() {
   const dispatch = useDispatch();
   const StockData = useSelector((state) => state.stock_data.CATEGORY_DATA);
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
@@ -28,13 +29,16 @@ export default function SearchCom() {
 
   useEffect(() => {
     if (allStocks.length > 0) {
-      if (value === "All" && subvalue === "All") {
+      if (value === "All" && subvalue === "All" && inputValue.length === 0) {
+        dispatch(searchInvoiceItems([]));
+      }
+
+      if (value === "All" && subvalue === "All" && inputValue.length > 0) {
         //!ALL CATEGORYS
         const filterdData = allStocks.filter((item) =>
           item["Product_name"].includes(inputValue)
         );
-
-        dispatch(stockFilter(filterdData));
+        dispatch(searchInvoiceItems(filterdData));
       } else if (value !== "All" && subvalue === "All") {
         //!SELECTED CATEGORYS NO SUB VALUE
 
@@ -45,7 +49,7 @@ export default function SearchCom() {
         );
 
         //!WITH SUB VALUE AND CATE VALUE
-        dispatch(stockFilter(filterdData));
+        dispatch(searchInvoiceItems(filterdData));
       } else if (value !== "All" && subvalue !== "All") {
         const filterdData = allStocks.filter(
           (item) =>
@@ -54,7 +58,7 @@ export default function SearchCom() {
             item["Sub_Category"].includes(subvalue)
         );
 
-        dispatch(stockFilter(filterdData));
+        dispatch(searchInvoiceItems(filterdData));
       }
     }
     const catarray = ["All"];
@@ -95,7 +99,7 @@ export default function SearchCom() {
         <Autocomplete
           className="md:ml-2 ml-0 md:my-0 my-2"
           size="small"
-          value={value === null ? "All" : value}
+          value={value === null ? mainCategory[0] : value}
           onChange={(event, newValue) => {
             setValue(newValue);
           }}

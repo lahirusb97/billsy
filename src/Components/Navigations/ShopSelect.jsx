@@ -17,9 +17,12 @@ import {
   onSnapshot,
   getFirestore,
   getDocs,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 import RegisterShop from "../Settings/RegisterShop";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
+import { addCustomerData } from "../../Store/Slices/CoustomerData";
 export default function ShopSelect() {
   const authId = useSelector((state) => state.user_data.authData);
   const userData = useSelector((state) => state.user_data.userData);
@@ -53,6 +56,16 @@ export default function ShopSelect() {
         setShopList(nestedDocsData);
         setshops(nestedDocsData.length > 0 ? false : true);
         // Access the nested documents data array
+
+        const docRef = doc(db, "/Customers_map", "List");
+        onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            dispatch(addCustomerData(docSnap.data()));
+          } else {
+            // docSnap.data() will be undefined in this case
+            dispatch(addCustomerData([]));
+          }
+        });
       } catch (error) {
         dispatch(
           openScackbar({

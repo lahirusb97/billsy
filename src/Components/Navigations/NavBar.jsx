@@ -305,9 +305,7 @@ export default function NavBar() {
                 </ListItem>
               ) : !text.protected ? (
                 <ListItem
-                  onClick={() => {
-                    console.log(text);
-                  }}
+                  onClick={() => {}}
                   key={text["name"]}
                   disablePadding
                   sx={{ display: "block" }}

@@ -57,6 +57,8 @@ export default function EditProduct({ edit, inputdata, setState }) {
     Stock_count: yup.number().required("Enter Item Count"),
     Alert: yup.number().required("Enter Alert Count"),
     Price: yup.number().required("Enter Item Price"),
+    Cost: yup.number().required("Enter Item Cost"),
+    Warranty: yup.string().required("Enter Item Worrenty"),
     Note: yup.string().transform((value) => value.toLowerCase()),
   });
   const {
@@ -127,6 +129,8 @@ export default function EditProduct({ edit, inputdata, setState }) {
     setValue("Stock_count", inputdata["Stock_count"]);
     setValue("Alert", inputdata["Alert"]);
     setValue("Price", inputdata["Price"]);
+    setValue("Cost", inputdata["Cost"]);
+    setValue("Warranty", inputdata["Warranty"]);
     setValue("Note", inputdata["Note"]);
   }, [edit]);
   const [open, setOpen] = React.useState(false);
@@ -323,7 +327,7 @@ export default function EditProduct({ edit, inputdata, setState }) {
           </p>
         </div>
 
-        <div className="bg-my white px-2 shadow-md border-grayLite border  mt-4 bg-mywhite flex justify-center items-center flex-col">
+        <div className="bg-my white px-2 shadow-md border-grayLite border  mt-4 bg-mywhite flex justify-center items-center">
           <TextField
             error={errors.Price ? true : false}
             style={{ margin: "1em auto" }}
@@ -344,8 +348,43 @@ export default function EditProduct({ edit, inputdata, setState }) {
           <p className="text-myred font-semibold text-xs italic">
             {errors.Price ? "Enter Item Price" : ""}
           </p>
+          <TextField
+            error={errors.Price ? true : false}
+            style={{ margin: "1em auto" }}
+            type="number"
+            label="Cost"
+            placeholder="Item Cost"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">RS</InputAdornment>
+              ),
+              sx: { borderRadius: BODER_RADIUS, marginRight: "1em" },
+            }}
+            {...register("Cost", { required: true })}
+            // InputLabelProps={{
+            //   shrink: Boolean(inputdata?.Product_name || errors.Product_name),
+            // }}
+          />
+          <p className="text-myred font-semibold text-xs italic">
+            {errors.Cost ? "Enter Item Price" : ""}
+          </p>
         </div>
         <div className="bg-my white px-2 shadow-md border-grayLite border  mt-4 bg-mywhite py-4">
+          <TextField
+            fullWidth
+            multiline
+            rows={1}
+            type="text"
+            label="Warranty"
+            placeholder="Warranty"
+            InputProps={{
+              sx: { borderRadius: BODER_RADIUS, marginBottom: "1rem" },
+            }}
+            {...register("Warranty", { required: true })}
+          />
+          <p className="text-myred font-semibold text-xs italic">
+            {errors.Warranty ? "Enter Item Warranty" : ""}
+          </p>
           <TextField
             fullWidth
             multiline

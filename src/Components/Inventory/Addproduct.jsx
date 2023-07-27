@@ -49,6 +49,7 @@ export default function Addproduct({ setState }) {
     Alert: yup.number().required("Enter Alert Count"),
     Price: yup.number().required("Enter Item Price"),
     Cost: yup.number().required("Enter Item Cost"),
+    Warranty: yup.string().required("Enter Item Worrenty"),
     Note: yup.string().transform((value) => value.toLowerCase()),
   });
   const {
@@ -263,7 +264,22 @@ export default function Addproduct({ setState }) {
           <TextField
             fullWidth
             multiline
-            rows={4}
+            rows={1}
+            type="text"
+            label="Warranty"
+            placeholder="Warranty"
+            InputProps={{
+              sx: { borderRadius: BODER_RADIUS, marginBottom: "1rem" },
+            }}
+            {...register("Warranty", { required: true })}
+          />
+          <p className="text-myred font-semibold text-xs italic">
+            {errors.Warranty ? "Enter Item Warranty" : ""}
+          </p>
+          <TextField
+            fullWidth
+            multiline
+            rows={2}
             type="text"
             label="Note"
             placeholder="Aditional Note"

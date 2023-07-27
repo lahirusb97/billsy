@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   Data: false,
   CATEGORY_DATA: null,
+
   ALL_STOCKS: [],
   FILTER_STOCK: [],
   INVOICE_TABLE_DATA: [],
@@ -25,6 +26,7 @@ export const stockData = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setCategory, setStock, stockFilter } = stockData.actions;
+export const { setCategory, setStock, stockFilter, setCategoryChange } =
+  stockData.actions;
 
 export default stockData.reducer;

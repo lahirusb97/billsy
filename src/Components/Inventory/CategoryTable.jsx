@@ -23,12 +23,13 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  deleteField,
 } from "firebase/firestore";
 import { getDatabase, ref, onValue, remove, child } from "firebase/database";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 
 function Row(props) {
-  const { row } = props;
+  const { row, setRows } = props;
   const [open, setOpen] = React.useState(false);
   const [open2, setOpen2] = React.useState(false);
 
@@ -125,19 +126,42 @@ function Row(props) {
     }
   };
 
-  const removeAllCate = (s) => {
-    console.log(s);
+  const removeAllCate = async (itemsCount, subcatCount, cate) => {
+    if (Stock_manage) {
+      if (itemsCount === 0) {
+        const fdb = getFirestore();
+        const dbArrayRef = doc(fdb, "Shop", StockData.id);
 
-    // try {
-    // } catch (error) {
-    //   dispatch(
-    //     openScackbar({
-    //       open: true,
-    //       type: "success",
-    //       msg: error,
-    //     })
-    //   );
-    // }
+        if (subcatCount > 0) {
+          await updateDoc(dbArrayRef, {
+            cate: deleteField(),
+          })
+            .then(async () => {
+              await updateDoc(dbArrayRef, {
+                Category: arrayRemove(cate),
+              }).then(() => {
+                console.log(cate);
+              });
+            })
+            .catch((e) => console.log(e));
+        } else {
+          await updateDoc(dbArrayRef, {
+            Category: arrayRemove(cate),
+          }).then(() => {
+            console.log(StockData);
+          });
+        }
+        setRows((prevRows) => prevRows.filter((row) => row.category !== cate));
+      } else {
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "error",
+            msg: "Remove clear sub categorys before deleteing complete category",
+          })
+        );
+      }
+    }
   };
   return (
     <React.Fragment>
@@ -162,7 +186,9 @@ function Row(props) {
         <TableCell align="left">{row.total}</TableCell>
         <TableCell align="left" size="small" aria-label="expand row">
           <Delete
-            onClick={() => removeAllCate(row.category)}
+            onClick={() =>
+              removeAllCate(row.total, row.sub_category, row.category)
+            }
             className="text-red cursor-pointer"
           />
         </TableCell>
@@ -174,13 +200,17 @@ function Row(props) {
               <Typography variant="h6" gutterBottom component="div">
                 Manage Sub Category
               </Typography>
-              <h2 className="font-semibold text-purple">
-                Add sub Category{" "}
-                <AddCircle
-                  onClick={handleOpen}
-                  className="text-greendark cursor-pointer"
-                />
-              </h2>
+              {Stock_manage ? (
+                <h2 className="font-semibold text-purple">
+                  Add sub Category{" "}
+                  <AddCircle
+                    onClick={handleOpen}
+                    className="text-greendark cursor-pointer"
+                  />
+                </h2>
+              ) : (
+                <></>
+              )}
               <Table size="small" aria-label="purchases">
                 <TableHead className="bg-blue">
                   <TableRow>
@@ -293,6 +323,7 @@ export default function CollapsibleTable() {
   const Stock_manage = useSelector(
     (state) => state.user_data.userData["Stock_manage"]
   );
+
   const [rows, setrows] = React.useState([]);
 
   React.useEffect(() => {
@@ -350,13 +381,17 @@ export default function CollapsibleTable() {
       <Typography variant="h6" gutterBottom component="div" paddingLeft={2}>
         Manage Category
       </Typography>
-      <h2 className="font-semibold text-purple pl-2">
-        Add Category{" "}
-        <AddCircle
-          onClick={handleOpen}
-          className="text-greendark cursor-pointer"
-        />
-      </h2>
+      {Stock_manage ? (
+        <h2 className="font-semibold text-purple pl-2">
+          Add Category{" "}
+          <AddCircle
+            onClick={handleOpen}
+            className="text-greendark cursor-pointer"
+          />
+        </h2>
+      ) : (
+        <></>
+      )}
       <Table aria-label="collapsible table">
         <TableHead>
           <TableRow>
@@ -371,7 +406,7 @@ export default function CollapsibleTable() {
         </TableHead>
         <TableBody className="capitalize">
           {rows.map((row) => (
-            <Row key={row.category} row={row} />
+            <Row key={row.category} row={row} setRows={setrows} />
           ))}
         </TableBody>
       </Table>

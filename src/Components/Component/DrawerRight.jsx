@@ -15,6 +15,7 @@ import useWindowDimensions from "../../Hooks/WindowSize";
 import { AppBar } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { useSelector } from "react-redux";
+
 // eslint-disable-next-line react/prop-types
 export default function DrawerRight({ comp, state, setState }) {
   // eslint-disable-next-line react/prop-types
