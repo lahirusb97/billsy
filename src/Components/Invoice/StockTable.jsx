@@ -177,7 +177,12 @@ export default function CustomPaginationActionsTable() {
             paginatedData.map((row) => (
               <TableRow
                 onClick={() => {
-                  const rowWithQty = { ...row, Qty: 1, UnitPrice: row.Price };
+                  const rowWithQty = {
+                    ...row,
+                    Qty: 1,
+                    UnitPrice: row.Price,
+                    UnitCost: row.Cost,
+                  };
                   dispatch(addItem(rowWithQty));
                 }}
                 key={row.productID}

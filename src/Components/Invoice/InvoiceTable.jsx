@@ -6,7 +6,14 @@ import InvoiceDataTable from "./InvoiceDataTable";
 import DrawerRight from "../Component/DrawerRight";
 import CoustomBillItem from "./CoustomBillItem";
 import { clearAll } from "../../Store/Slices/InvoiceSlice";
-
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 export default function InvoiceTable() {
   const userData = useSelector((state) => state.user_data.userData);
   const dispatch = useDispatch();
@@ -16,11 +23,22 @@ export default function InvoiceTable() {
   const COUSTOMER_DATA = useSelector(
     (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
   );
+  const CATEGORY_DATA = useSelector((state) => state.stock_data.CATEGORY_DATA);
+  const INVOICE_ITEMS = useSelector(
+    (state) => state.invoice_data.INVOICE_ITEMS
+  );
+  const TOTAL = useSelector((state) => state.invoice_data.TOTAL_PRICE);
+  const TOTAL_COST = useSelector((state) => state.invoice_data.TOTAL_COST);
   const [selectedOption, setSelectedOption] = useState("");
   const [subselectedOption, setSubSelectedOption] = useState("");
   const [mobile, setMobile] = useState("");
   const [name, setName] = useState("");
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  //ERROS
+  const [nameError, setNameError] = useState(false);
+  const [mobileError, setMobileError] = useState(false);
+  const [subselectedOptionError, setSubSelectedOptionError] = useState(false);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDateTime(new Date());
@@ -30,29 +48,147 @@ export default function InvoiceTable() {
   }, []);
 
   const handleBill = () => {
-    if (!checked && !refer) {
-      if (name.length > 0 && mobile.length > 0) {
-        console.log("s");
+    if (INVOICE_ITEMS.length > 0) {
+      if (!checked && !refer) {
+        if (name.length > 0 && mobile.length === 10) {
+          const productItems = INVOICE_ITEMS.map((e) => {
+            return {
+              Product_name: e["Product_name"],
+              Qty: e["Qty"],
+              Cost: e["Cost"],
+              Price: e["Price"],
+              Warranty: e["Warranty"],
+            };
+          });
+
+          normalCoustomerBill(productItems);
+        } else {
+          if (name.length === 0) {
+            setNameError(true);
+            dispatch(
+              openScackbar({
+                open: true,
+                type: "error",
+                msg: "Coustomer name is empty",
+              })
+            );
+          } else {
+            setNameError(false);
+          }
+          if (mobile.length < 10 || mobile.length > 10) {
+            setMobileError(true);
+            dispatch(
+              openScackbar({
+                open: true,
+                type: "error",
+                msg: "Invalid Mobile Number",
+              })
+            );
+          } else {
+            setMobileError(false);
+          }
+        }
       } else {
-        console.log("mobile name  empty");
-        // if(name.length===0){
-        // }
+        if (checked && !refer) {
+          if (subselectedOption) {
+            if (mobile.length === 10) {
+              //!ADD BILL
+              console.log(subselectedOption);
+            } else {
+              setMobileError(true);
+            }
+          } else {
+            setSubSelectedOptionError(true);
+          }
+        } else if (!checked && refer) {
+          console.log("refer checked");
+        } else {
+          console.log("both");
+        }
       }
     } else {
-      if (checked && !refer) {
-        console.log("checked");
-      } else if (!checked && refer) {
-        console.log("refer checked");
-      } else {
-        console.log("both");
-      }
+      dispatch(
+        openScackbar({ open: true, type: "error", msg: "No Item Added" })
+      );
     }
   };
-  const normalCoustomerBill = () => {};
+
+  const myCoustomerChecked = () => {};
+  const normalCoustomerBill = (data) => {
+    const db = getFirestore();
+    const userDocRef = doc(
+      db,
+      `/bills/${
+        CATEGORY_DATA["Shop_id"]
+      }/${currentDateTime.getFullYear()}/${currentDateTime.getFullYear()}${
+        currentDateTime.getMonth() + 1
+      }${currentDateTime.getDate()}`
+    );
+
+    getDoc(userDocRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const newBillId = `${CATEGORY_DATA["Bill_char"]}${
+          CATEGORY_DATA["Bill_number"] + 1
+        }`;
+
+        const newBillData = {
+          Items: data,
+          Total: TOTAL,
+          Cost: TOTAL_COST,
+          Name: name,
+          Mobile: mobile,
+          Date: currentDateTime,
+        };
+        //!
+        updateDoc(userDocRef, {
+          [`Bills.${newBillId}`]: newBillData,
+        })
+          .then(() => {
+            const shopDocRef = doc(db, `/Shop/${CATEGORY_DATA["Shop_id"]}`);
+
+            updateDoc(shopDocRef, {
+              Bill_number: CATEGORY_DATA["Bill_number"] + 1,
+            });
+          })
+          .then(() => {
+            dispatch(
+              openScackbar({ open: true, type: "success", msg: "Bill Added" })
+            );
+            ClearAllData();
+          });
+      } else {
+        setDoc(userDocRef, {
+          Bills: {
+            [`${CATEGORY_DATA["Bill_char"]}${
+              CATEGORY_DATA["Bill_number"] + 1
+            }`]: {
+              Items: data,
+              Total: TOTAL,
+              Cost: TOTAL_COST,
+              Name: name,
+              Mobile: mobile,
+              Date: currentDateTime,
+            },
+          },
+        });
+      }
+    });
+  };
+  const ClearAllData = () => {
+    dispatch(clearAll());
+    setMobile("");
+    setchecked(false);
+    setrefer(false);
+    setSelectedOption("");
+    setSubSelectedOption("");
+  };
   return (
     <div className="max-w-5xl border-2 border-bluedark p-4 m-auto">
       <h1 className="font-bold">
-        Bill<span className="text-blue">#{"0001"}</span>
+        Bill
+        <span className="text-blue">
+          {` #${CATEGORY_DATA["Bill_char"]}${CATEGORY_DATA["Bill_number"] + 1}`}
+        </span>
       </h1>
       <h5>
         Date:{currentDateTime.getFullYear()}/{currentDateTime.getMonth() + 1}/
@@ -158,6 +294,7 @@ export default function InvoiceTable() {
               )}
               renderInput={(params) => (
                 <TextField
+                  error={subselectedOptionError}
                   {...params}
                   label="Coustomer Name"
                   variant="standard"
@@ -179,6 +316,7 @@ export default function InvoiceTable() {
                 placeholder="Chanaka"
                 onChange={(e) => setName(e.target.value)}
                 value={name}
+                error={nameError}
               />
             </Box>
           )}
@@ -192,6 +330,10 @@ export default function InvoiceTable() {
               placeholder="071 0000000"
               value={mobile || ""}
               onChange={(e) => setMobile(e.target.value)}
+              error={mobileError}
+              InputProps={{
+                readOnly: checked || refer ? true : false,
+              }}
             />
           </Box>
         </div>
@@ -210,14 +352,7 @@ export default function InvoiceTable() {
         </button>
 
         <button
-          onClick={() => {
-            dispatch(clearAll());
-            setMobile("");
-            setchecked(false);
-            setrefer(false);
-            setSelectedOption("");
-            setSubSelectedOption("");
-          }}
+          onClick={ClearAllData}
           className="bg-red px-8 py-2 text-mywhite m-2"
         >
           Clear
