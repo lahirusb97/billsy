@@ -182,6 +182,7 @@ export default function InvoiceTable() {
     setSelectedOption("");
     setSubSelectedOption("");
   };
+
   return (
     <div className="max-w-5xl border-2 border-bluedark p-4 m-auto">
       <h1 className="font-bold">
@@ -190,6 +191,7 @@ export default function InvoiceTable() {
           {` #${CATEGORY_DATA["Bill_char"]}${CATEGORY_DATA["Bill_number"] + 1}`}
         </span>
       </h1>
+
       <h5>
         Date:{currentDateTime.getFullYear()}/{currentDateTime.getMonth() + 1}/
         {currentDateTime.getDate()}
@@ -210,7 +212,7 @@ export default function InvoiceTable() {
             }}
             id="country-select-demo"
             sx={{ width: 300 }}
-            options={COUSTOMER_DATA}
+            options={Object.values(COUSTOMER_DATA).map((e) => e)}
             autoHighlight
             getOptionLabel={(option) => option.Name}
             renderOption={(props, option) => (
@@ -273,7 +275,7 @@ export default function InvoiceTable() {
               }}
               id="country-select-demo"
               sx={{ width: 300 }}
-              options={COUSTOMER_DATA}
+              options={Object.values(COUSTOMER_DATA).map((e) => e)}
               autoHighlight
               getOptionLabel={(option) => option.Name}
               renderOption={(props, option) => (
