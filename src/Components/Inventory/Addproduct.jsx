@@ -23,7 +23,7 @@ export default function Addproduct({ setState }) {
   const [subCate, setsubCate] = React.useState("");
   const [loadingState, setloadingState] = React.useState(false);
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
-  const shopData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+  const shopData = useSelector((state) => state.shop_data.SELECTED_SHOP);
 
   const dispatch = useDispatch();
 

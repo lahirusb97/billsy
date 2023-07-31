@@ -1,5 +1,6 @@
 import React from "react";
 import AddCoustomerModal from "./AddCoustomerModal";
+import Example from "./DataTable";
 
 export default function CoustomerDashboard() {
   const [open, setOpen] = React.useState(false);
@@ -12,6 +13,7 @@ export default function CoustomerDashboard() {
         Add Coustomer
       </button>
       <AddCoustomerModal open={open} setOpen={setOpen} />
+      <Example />
     </div>
   );
 }

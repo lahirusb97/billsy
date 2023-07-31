@@ -183,6 +183,7 @@ export default function CustomPaginationActionsTable() {
                     UnitPrice: row.Price,
                     UnitCost: row.Cost,
                   };
+
                   dispatch(addItem(rowWithQty));
                 }}
                 key={row.productID}

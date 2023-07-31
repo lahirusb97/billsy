@@ -23,7 +23,7 @@ export default function Stocks() {
   const [edit, setEdit] = useState(false);
   const [inputdata, setInputdata] = useState([]);
   const shop_Id = useSelector(
-    (state) => state.user_data.CURRENT_SHOP["Shop_id"]
+    (state) => state.shop_data.SELECTED_SHOP["Shop_id"]
   );
   const editState = (editSw, data) => {
     setEdit(editSw);

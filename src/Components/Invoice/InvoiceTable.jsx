@@ -7,13 +7,17 @@ import DrawerRight from "../Component/DrawerRight";
 import CoustomBillItem from "./CoustomBillItem";
 import { clearAll } from "../../Store/Slices/InvoiceSlice";
 import {
+  addDoc,
+  collection,
   doc,
   getDoc,
   getFirestore,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
+import { getDatabase, ref, child, push, update } from "firebase/database";
+import BillPrint from "./BillPrint";
+
 export default function InvoiceTable() {
   const userData = useSelector((state) => state.user_data.userData);
   const dispatch = useDispatch();
@@ -51,17 +55,19 @@ export default function InvoiceTable() {
     if (INVOICE_ITEMS.length > 0) {
       if (!checked && !refer) {
         if (name.length > 0 && mobile.length === 10) {
-          const productItems = INVOICE_ITEMS.map((e) => {
-            return {
-              Product_name: e["Product_name"],
-              Qty: e["Qty"],
-              Cost: e["Cost"],
-              Price: e["Price"],
-              Warranty: e["Warranty"],
-            };
-          });
+          // const productItems = INVOICE_ITEMS.map((e) => {
+          //   return {
+          //     Product_name: e["Product_name"],
+          //     Qty: e["Qty"],
+          //     Cost: e["Cost"],
+          //     Price: e["Price"],
+          //     Warranty: e["Warranty"],
+          //     productID: e["productID"],
+          //     Stock_count: e["Stock_count"],
+          //   };
+          // });
 
-          normalCoustomerBill(productItems);
+          normalCoustomerBill(INVOICE_ITEMS);
         } else {
           if (name.length === 0) {
             setNameError(true);
@@ -114,64 +120,82 @@ export default function InvoiceTable() {
   };
 
   const myCoustomerChecked = () => {};
-  const normalCoustomerBill = (data) => {
+  const normalCoustomerBill = async (data) => {
     const db = getFirestore();
-    const userDocRef = doc(
-      db,
-      `/bills/${
-        CATEGORY_DATA["Shop_id"]
-      }/${currentDateTime.getFullYear()}/${currentDateTime.getFullYear()}${
-        currentDateTime.getMonth() + 1
-      }${currentDateTime.getDate()}`
-    );
 
-    getDoc(userDocRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        const newBillId = `${CATEGORY_DATA["Bill_char"]}${
-          CATEGORY_DATA["Bill_number"] + 1
-        }`;
+    try {
+      const collectionRef = collection(
+        db,
+        "bills",
+        CATEGORY_DATA["Shop_id"],
+        currentDateTime.getFullYear().toString()
+      );
 
-        const newBillData = {
-          Items: data,
-          Total: TOTAL,
-          Cost: TOTAL_COST,
-          Name: name,
-          Mobile: mobile,
-          Date: currentDateTime,
-        };
-        //!
-        updateDoc(userDocRef, {
-          [`Bills.${newBillId}`]: newBillData,
+      const BILL_ITEM = data.map((e) => {
+        const modifiedObject = {};
+        modifiedObject.Product_name = e["Product_name"];
+        modifiedObject.Qty = e["Qty"];
+        modifiedObject.Cost = e["Cost"];
+        modifiedObject.Price = e["Price"];
+        modifiedObject.Warranty = e["Warranty"];
+        modifiedObject.productID = e["productID"];
+        modifiedObject.Stock_count = e["Stock_count"];
+
+        return modifiedObject;
+      });
+
+      // TODO: UPDATE
+      const docRef = await addDoc(collectionRef, {
+        Items: BILL_ITEM.map((e) => {
+          const modifiedObject = { ...e };
+          delete modifiedObject["productID"];
+          delete modifiedObject["Stock_count"];
+          return modifiedObject;
+        }),
+        Total: TOTAL,
+        Cost: TOTAL_COST,
+        Name: name,
+        Mobile: mobile,
+        Date: currentDateTime,
+      }).then(() => {
+        // TODO: Update Stock
+        reduceStock(BILL_ITEM);
+      });
+    } catch (error) {
+      dispatch(
+        openScackbar({
+          open: true,
+          type: "error",
+          msg: "Check your internet conection",
         })
-          .then(() => {
-            const shopDocRef = doc(db, `/Shop/${CATEGORY_DATA["Shop_id"]}`);
+      );
+    }
+  };
 
-            updateDoc(shopDocRef, {
-              Bill_number: CATEGORY_DATA["Bill_number"] + 1,
-            });
-          })
-          .then(() => {
-            dispatch(
-              openScackbar({ open: true, type: "success", msg: "Bill Added" })
-            );
-            ClearAllData();
-          });
-      } else {
-        setDoc(userDocRef, {
-          Bills: {
-            [`${CATEGORY_DATA["Bill_char"]}${
-              CATEGORY_DATA["Bill_number"] + 1
-            }`]: {
-              Items: data,
-              Total: TOTAL,
-              Cost: TOTAL_COST,
-              Name: name,
-              Mobile: mobile,
-              Date: currentDateTime,
-            },
-          },
+  const reduceStock = (BILL_ITEM) => {
+    const dbrealtime = getDatabase();
+
+    const stock_IDs = BILL_ITEM.filter((e) => e["productID"] !== "none");
+    stock_IDs.forEach((element) => {
+      const stockUpdate = {
+        Stock_count: element["Stock_count"] - element["Qty"],
+      };
+      update(
+        ref(
+          dbrealtime,
+          `/System/Inventory/${CATEGORY_DATA["Shop_id"]}/${element["productID"]}`
+        ),
+        stockUpdate
+      )
+        .then(() => {
+          ClearAllData();
+          dispatch(
+            openScackbar({ open: true, type: "success", msg: "Bill Added" })
+          );
+        })
+        .catch((err) => {
+          console.log(err);
         });
-      }
     });
   };
   const ClearAllData = () => {
@@ -187,7 +211,7 @@ export default function InvoiceTable() {
     <div className="max-w-5xl border-2 border-bluedark p-4 m-auto">
       <h1 className="font-bold">
         Bill
-        <span className="text-blue">
+        <span className="text-blue capitalize">
           {` #${CATEGORY_DATA["Bill_char"]}${CATEGORY_DATA["Bill_number"] + 1}`}
         </span>
       </h1>
@@ -372,6 +396,7 @@ export default function InvoiceTable() {
         state={state}
         setState={setState}
       />
+      <BillPrint />
     </div>
   );
 }

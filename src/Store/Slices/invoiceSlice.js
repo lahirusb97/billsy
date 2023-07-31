@@ -16,6 +16,7 @@ export const invoiceSlice = createSlice({
     },
     addItem: (state, action) => {
       state.INVOICE_ITEMS = [...state.INVOICE_ITEMS, action.payload];
+
       state.TOTAL_PRICE += action.payload["Price"];
       state.TOTAL_COST += action.payload["Cost"];
     },

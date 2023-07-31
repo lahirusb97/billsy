@@ -16,8 +16,12 @@ export default function CoustomBillItem() {
     Price: yup.number().required("Enter Item Price"),
     Cost: yup.number().required("Enter Item Cost"),
     Qty: yup.number(),
-    Warranty: yup.string().transform((value) => value.toLowerCase()),
+    Warranty: yup
+      .string()
+      .required("Enter Warrenty")
+      .transform((value) => value.toLowerCase()),
     UnitPrice: yup.number(),
+    productID: yup.string(),
   });
   const {
     register,
@@ -31,6 +35,8 @@ export default function CoustomBillItem() {
     defaultValues: {
       Qty: 1,
       UnitPrice: 0,
+      productID: "none",
+      Stock_count: "none",
     },
   });
   React.useEffect(() => {
@@ -71,7 +77,7 @@ export default function CoustomBillItem() {
         <TextField
           style={{ marginTop: "1rem" }}
           label="Warranty"
-          {...register("Warrenty", { required: true })}
+          {...register("Warranty", { required: true })}
         />
         <p className="text-myred font-semibold text-xs italic">
           {errors.Warranty?.message}

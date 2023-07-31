@@ -23,6 +23,7 @@ import {
 import RegisterShop from "../Settings/RegisterShop";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 import { addCustomerData } from "../../Store/Slices/CoustomerData";
+import { shopselect } from "../../Store/Slices/shopData";
 export default function ShopSelect() {
   const authId = useSelector((state) => state.user_data.authData);
   const userData = useSelector((state) => state.user_data.userData);
@@ -92,6 +93,7 @@ export default function ShopSelect() {
           const docId = doc.id;
 
           dispatch(setCategory({ id: docId, ...data }));
+          dispatch(shopselect({ id: docId, ...data }));
         });
       });
     };
