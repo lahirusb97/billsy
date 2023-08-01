@@ -18,6 +18,7 @@ import {
   updateDoc,
   doc,
   arrayUnion,
+  setDoc,
 } from "firebase/firestore";
 
 import {
@@ -27,7 +28,7 @@ import {
   uploadBytes,
   uploadString,
 } from "firebase/storage";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 
 export default function AddCoustomerModal({ open, setOpen }) {
@@ -38,6 +39,7 @@ export default function AddCoustomerModal({ open, setOpen }) {
 
   const handleClose = () => {
     setOpen(false);
+    setNameError(false);
   };
   const [imageUrl, setImageUrl] = React.useState(null);
   const [name, setName] = React.useState("");
@@ -46,6 +48,9 @@ export default function AddCoustomerModal({ open, setOpen }) {
   const [mobileError, setMobileError] = React.useState(false);
   const [currentDateTime, setCurrentDateTime] = React.useState(
     new Date().getFullYear()
+  );
+  const COUSTOMER_DATA = useSelector(
+    (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
   );
 
   const handleFileUpload = (event) => {
@@ -110,11 +115,13 @@ export default function AddCoustomerModal({ open, setOpen }) {
           if (querySnapshot.empty) {
             //Step 1: Add a new customer document in Firestore
             const docRef = await addDoc(collection(db, "Coustomers"), {
-              [currentDateTime]: {
-                Bills: {},
-              },
               Name: name,
               Mobile: mobile,
+              Total: 0,
+              Cost: 0,
+              Ref_total: 0,
+              Ref_cost: 0,
+              Debt: 0,
             });
             const ID = docRef.id;
 
@@ -128,35 +135,31 @@ export default function AddCoustomerModal({ open, setOpen }) {
                 Img: downloadURL,
               });
               const Customers_mapRef = collection(db, "Customers_map");
-              const documentRef = doc(Customers_mapRef, "List");
+              const documentRef = doc(db, "Customers_map", "List");
 
               const updatedFields = {
-                Coustomers: {
-                  [ID]: {
-                    Img: downloadURL,
-                    ID: ID,
-                    Name: name,
-                    Mobile: mobile,
-                    Total: 0,
-                    Cost: 0,
-                  },
+                ...COUSTOMER_DATA,
+                [ID]: {
+                  Img: downloadURL,
+                  ID: ID,
+                  Name: name,
+                  Mobile: mobile,
                 },
-
-                // Add other fields you want to update
               };
-
-              await updateDoc(documentRef, updatedFields).then(() => {
+              updateDoc(documentRef, {
+                Coustomers: updatedFields,
+              }).then(() => {
                 setImageUrl(null);
                 setMobile("");
                 setName("");
                 setOpen(false);
-                dispatch(
-                  openScackbar({
-                    open: true,
-                    type: "success",
-                    msg: "New Coustomer Added",
-                  })
-                );
+                // dispatch(
+                //   openScackbar({
+                //     open: true,
+                //     type: "success",
+                //     msg: "New Coustomer Added",
+                //   })
+                // );
               });
             } else {
               const URL =
@@ -166,36 +169,34 @@ export default function AddCoustomerModal({ open, setOpen }) {
                 Img: URL,
               });
               const Customers_mapRef = collection(db, "Customers_map");
-              const documentRef = doc(Customers_mapRef, "List");
+              const documentRef = doc(db, "Customers_map", "List");
 
               const updatedFields = {
-                Coustomers: {
-                  [ID]: {
-                    Img: URL,
-                    ID: ID,
-                    Name: name,
-                    Mobile: mobile,
-                    Total: 0,
-                    Cost: 0,
-                  },
+                ...COUSTOMER_DATA,
+                [ID]: {
+                  Img: URL,
+                  ID: ID,
+                  Name: name,
+                  Mobile: mobile,
                 },
-
-                // Add other fields you want to update
               };
-
-              await updateDoc(documentRef, updatedFields).then(() => {
-                setImageUrl(null);
-                setMobile("");
-                setName("");
-                setOpen(false);
-                dispatch(
-                  openScackbar({
-                    open: true,
-                    type: "success",
-                    msg: "New Coustomer Added",
-                  })
-                );
-              });
+              updateDoc(documentRef, {
+                Coustomers: updatedFields,
+              })
+                .then(() => {
+                  setImageUrl(null);
+                  setMobile("");
+                  setName("");
+                  setOpen(false);
+                  // dispatch(
+                  //   openScackbar({
+                  //     open: true,
+                  //     type: "success",
+                  //     msg: "New Coustomer Added",
+                  //   })
+                  // );
+                })
+                .catch((err) => console.log(err));
             }
           } else {
             setNameError(true);
@@ -208,13 +209,13 @@ export default function AddCoustomerModal({ open, setOpen }) {
             );
           }
         } catch (error) {
-          dispatch(
-            openScackbar({
-              open: true,
-              type: "error",
-              msg: error,
-            })
-          );
+          // dispatch(
+          //   openScackbar({
+          //     open: true,
+          //     type: "error",
+          //     msg: error,
+          //   })
+          // );
         }
       } else {
         setMobileError(true);
@@ -280,6 +281,7 @@ export default function AddCoustomerModal({ open, setOpen }) {
             <TextField
               id="input-with-icon-textfield"
               label="Name"
+              error={nameError}
               value={name}
               onChange={(e) => setName(e.target.value)}
               InputProps={{

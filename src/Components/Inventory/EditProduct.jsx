@@ -32,7 +32,7 @@ export default function EditProduct({ edit, inputdata, setState }) {
   const [age, setAge] = React.useState("");
   const [subCate, setsubCate] = React.useState("");
   const [loadingState, setloadingState] = React.useState(false);
-  const shopData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+  const shopData = useSelector((state) => state.shop_data.SELECTED_SHOP);
   const ALL_STOCKS = useSelector((state) => state.stock_data.ALL_STOCKS);
 
   const dispatch = useDispatch();

@@ -14,9 +14,10 @@ import stockData, { stockFilter } from "../../Store/Slices/stockData";
 
 export default function SearchCom() {
   const dispatch = useDispatch();
-  const StockData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+
+  const shopData = useSelector((state) => state.shop_data.SELECTED_SHOP);
+
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
-  // const CURRENT_SHOP = useSelector((state) => state.user_data.CURRENT_SHOP);
 
   const [mainCategory, setmainCategory] = useState(["All"]);
   const [subCategory, setsubCategory] = useState(["All"]);
@@ -60,18 +61,18 @@ export default function SearchCom() {
     const catarray = ["All"];
     const subcatarray = ["All"];
 
-    StockData["Category"].forEach((element) => {
+    shopData["Category"].forEach((element) => {
       catarray.push(element);
     });
-    if (StockData[value]) {
-      StockData[value].forEach((element) => {
+    if (shopData[value]) {
+      shopData[value].forEach((element) => {
         subcatarray.push(element);
       });
     }
 
     setmainCategory(catarray);
     setsubCategory(subcatarray);
-  }, [inputValue, value, subvalue, allStocks, StockData["Category"]]);
+  }, [inputValue, value, subvalue, allStocks, shopData["Category"]]);
 
   return (
     <div className="flex items-end pb-2 flex-wrap">

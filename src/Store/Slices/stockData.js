@@ -3,7 +3,6 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   Data: false,
   CATEGORY_DATA: null,
-
   ALL_STOCKS: [],
   FILTER_STOCK: [],
   INVOICE_TABLE_DATA: [],

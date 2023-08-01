@@ -1,5 +1,10 @@
-import { AccountCircle, PhoneAndroid } from "@mui/icons-material";
-import { Autocomplete, Box, Switch, TextField } from "@mui/material";
+import {
+  AccountCircle,
+  PaymentRounded,
+  Payments,
+  PhoneAndroid,
+} from "@mui/icons-material";
+import { Autocomplete, Box, Button, Switch, TextField } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import InvoiceDataTable from "./InvoiceDataTable";
@@ -13,12 +18,16 @@ import {
   getDoc,
   getFirestore,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 import { getDatabase, ref, child, push, update } from "firebase/database";
 import BillPrint from "./BillPrint";
+import ReactToPrint from "react-to-print";
 
 export default function InvoiceTable() {
+  const [openmodal, setOpenmodal] = React.useState(false);
+
   const userData = useSelector((state) => state.user_data.userData);
   const dispatch = useDispatch();
   const [state, setState] = useState(false);
@@ -27,7 +36,9 @@ export default function InvoiceTable() {
   const COUSTOMER_DATA = useSelector(
     (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
   );
-  const CATEGORY_DATA = useSelector((state) => state.stock_data.CATEGORY_DATA);
+
+  const CATEGORY_DATA = useSelector((state) => state.shop_data.SELECTED_SHOP);
+
   const INVOICE_ITEMS = useSelector(
     (state) => state.invoice_data.INVOICE_ITEMS
   );
@@ -37,6 +48,8 @@ export default function InvoiceTable() {
   const [subselectedOption, setSubSelectedOption] = useState("");
   const [mobile, setMobile] = useState("");
   const [name, setName] = useState("");
+  const [payment, setPayment] = useState("");
+  const [paymentError, setPaymentError] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   //ERROS
   const [nameError, setNameError] = useState(false);
@@ -52,22 +65,14 @@ export default function InvoiceTable() {
   }, []);
 
   const handleBill = () => {
-    if (INVOICE_ITEMS.length > 0) {
+    if (INVOICE_ITEMS.length > 0 && payment.length > 0) {
+      if (name.length > 0 && mobile.length === 10) {
+        //TODO BILL
+        normalCoustomerBill(INVOICE_ITEMS);
+      }
       if (!checked && !refer) {
         if (name.length > 0 && mobile.length === 10) {
-          // const productItems = INVOICE_ITEMS.map((e) => {
-          //   return {
-          //     Product_name: e["Product_name"],
-          //     Qty: e["Qty"],
-          //     Cost: e["Cost"],
-          //     Price: e["Price"],
-          //     Warranty: e["Warranty"],
-          //     productID: e["productID"],
-          //     Stock_count: e["Stock_count"],
-          //   };
-          // });
-
-          normalCoustomerBill(INVOICE_ITEMS);
+          //TODO BILL
         } else {
           if (name.length === 0) {
             setNameError(true);
@@ -98,28 +103,34 @@ export default function InvoiceTable() {
         if (checked && !refer) {
           if (subselectedOption) {
             if (mobile.length === 10) {
-              //!ADD BILL
-              console.log(subselectedOption);
+              //TODO BILL
             } else {
               setMobileError(true);
             }
           } else {
             setSubSelectedOptionError(true);
           }
-        } else if (!checked && refer) {
-          console.log("refer checked");
-        } else {
-          console.log("both");
         }
       }
     } else {
-      dispatch(
-        openScackbar({ open: true, type: "error", msg: "No Item Added" })
-      );
+      if (INVOICE_ITEMS.length === 0) {
+        dispatch(
+          openScackbar({ open: true, type: "error", msg: "No Item Added" })
+        );
+      }
+      if (payment.length === 0) {
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "error",
+            msg: "Enter Coustomer Payment",
+          })
+        );
+        setPaymentError(true);
+      }
     }
   };
 
-  const myCoustomerChecked = () => {};
   const normalCoustomerBill = async (data) => {
     const db = getFirestore();
 
@@ -155,11 +166,27 @@ export default function InvoiceTable() {
         Total: TOTAL,
         Cost: TOTAL_COST,
         Name: name,
-        Mobile: mobile,
+        Mobile: mobile.toString(),
         Date: currentDateTime,
-      }).then(() => {
+        Payment: payment,
+        Ref_id: refer ? selectedOption["ID"] : "none",
+        Bill_id: `${CATEGORY_DATA["Bill_char"]}${
+          CATEGORY_DATA["Bill_number"] + 1
+        }`,
+      }).then(async () => {
         // TODO: Update Stock
+        const washingtonRef = doc(db, "Shop", CATEGORY_DATA["Shop_id"]);
+        const updateData = {
+          Bill_number: CATEGORY_DATA["Bill_number"] + 1,
+        };
+
+        await updateDoc(washingtonRef, updateData);
+
         reduceStock(BILL_ITEM);
+
+        if (checked) {
+          myCoustomerUpdate();
+        }
       });
     } catch (error) {
       dispatch(
@@ -172,10 +199,54 @@ export default function InvoiceTable() {
     }
   };
 
+  const myCoustomerUpdate = async () => {
+    try {
+      const documentSnapshot = await getDoc(washingtonRef);
+      const COUSTOMER_DATA = documentSnapshot.data().Coustomers;
+
+      // Make changes to the COUSTOMER_DATA object based on the conditions
+      if (subselectedOption) {
+        const db = getFirestore();
+        const washingtonRef = doc(db, "Coustomers", subselectedOption["ID"]);
+
+        COUSTOMER_DATA[subselectedOption["ID"]] = {
+          ...subselectedOption,
+          Total: subselectedOption["Total"] + TOTAL,
+          Cost: subselectedOption["Cost"] + TOTAL_COST,
+        };
+      }
+
+      if (refer && selectedOption) {
+        COUSTOMER_DATA[selectedOption["ID"]] = {
+          ...selectedOption,
+          Ref_total: refer
+            ? selectedOption["Ref_total"] + TOTAL
+            : selectedOption["Ref_total"],
+          Ref_cost: refer
+            ? selectedOption["Ref_cost"] + TOTAL_COST
+            : selectedOption["Ref_cost"],
+        };
+      }
+
+      // Update the entire document with the modified COUSTOMER_DATA
+      await setDoc(washingtonRef, { Coustomers: COUSTOMER_DATA });
+    } catch (err) {
+      dispatch(
+        openScackbar({ open: true, type: "error", msg: "Network Error" })
+      );
+    }
+  };
   const reduceStock = (BILL_ITEM) => {
     const dbrealtime = getDatabase();
 
     const stock_IDs = BILL_ITEM.filter((e) => e["productID"] !== "none");
+    const coustom_Items = BILL_ITEM.filter((e) => e["productID"] === "none");
+    if (stock_IDs.length === 0) {
+      setOpenmodal(true);
+      dispatch(
+        openScackbar({ open: true, type: "success", msg: "Bill Added" })
+      );
+    }
     stock_IDs.forEach((element) => {
       const stockUpdate = {
         Stock_count: element["Stock_count"] - element["Qty"],
@@ -188,7 +259,8 @@ export default function InvoiceTable() {
         stockUpdate
       )
         .then(() => {
-          ClearAllData();
+          setOpenmodal(true);
+
           dispatch(
             openScackbar({ open: true, type: "success", msg: "Bill Added" })
           );
@@ -205,6 +277,7 @@ export default function InvoiceTable() {
     setrefer(false);
     setSelectedOption("");
     setSubSelectedOption("");
+    setPayment("");
   };
 
   return (
@@ -225,6 +298,10 @@ export default function InvoiceTable() {
           checked={refer}
           onChange={(e) => {
             setrefer(e.target.checked);
+            if (!checked) {
+              setMobile("");
+              setName("");
+            }
           }}
           aria-label=""
         />
@@ -233,10 +310,20 @@ export default function InvoiceTable() {
           <Autocomplete
             onChange={(event, val) => {
               setSelectedOption(val);
+
+              if (val === null && !checked) {
+                setMobile("");
+                setName("");
+              } else if (checked && val !== null) {
+                // setMobile(val["Mobile"]);
+                // setName(val["Name"]);
+              }
             }}
             id="country-select-demo"
             sx={{ width: 300 }}
-            options={Object.values(COUSTOMER_DATA).map((e) => e)}
+            options={Object.values(COUSTOMER_DATA).filter((e) =>
+              subselectedOption ? e["Name"] !== subselectedOption["Name"] : e
+            )}
             autoHighlight
             getOptionLabel={(option) => option.Name}
             renderOption={(props, option) => (
@@ -278,6 +365,7 @@ export default function InvoiceTable() {
         onChange={(e) => {
           setchecked(e.target.checked);
           setMobile("");
+          setName("");
         }}
         aria-label=""
       />
@@ -293,13 +381,17 @@ export default function InvoiceTable() {
                 setSubSelectedOption(val);
                 if (val === null) {
                   setMobile("");
+                  setName("");
                 } else {
                   setMobile(val["Mobile"]);
+                  setName(val["Name"]);
                 }
               }}
               id="country-select-demo"
               sx={{ width: 300 }}
-              options={Object.values(COUSTOMER_DATA).map((e) => e)}
+              options={Object.values(COUSTOMER_DATA).filter((e) =>
+                selectedOption ? e["Name"] !== selectedOption["Name"] : e
+              )}
               autoHighlight
               getOptionLabel={(option) => option.Name}
               renderOption={(props, option) => (
@@ -352,13 +444,14 @@ export default function InvoiceTable() {
             <TextField
               id="input-with-sx"
               label="Mobile"
+              type="number"
               variant="standard"
               placeholder="071 0000000"
               value={mobile || ""}
               onChange={(e) => setMobile(e.target.value)}
               error={mobileError}
               InputProps={{
-                readOnly: checked || refer ? true : false,
+                readOnly: checked ? true : false,
               }}
             />
           </Box>
@@ -369,6 +462,21 @@ export default function InvoiceTable() {
         </div>
       </div>
       <InvoiceDataTable />
+      <div className="flex justify-end mb-4 ">
+        <Box sx={{ display: "flex", alignItems: "flex-end" }}>
+          <Payments sx={{ mr: 1, my: 0.5 }} className="text-purple" />
+          <TextField
+            type="number"
+            id="input-with-sx"
+            label="Payment"
+            variant="standard"
+            placeholder="10000"
+            value={payment}
+            onChange={(e) => setPayment(e.target.value)}
+            error={paymentError}
+          />
+        </Box>
+      </div>
       <div className="flex justify-between">
         <button
           onClick={() => setState(true)}
@@ -396,7 +504,13 @@ export default function InvoiceTable() {
         state={state}
         setState={setState}
       />
-      <BillPrint />
+
+      <BillPrint
+        ClearAllData={ClearAllData}
+        setOpen={setOpenmodal}
+        open={openmodal}
+        name={name}
+      />
     </div>
   );
 }

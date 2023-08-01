@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 //MRT Imports
 //import MaterialReactTable from 'material-react-table'; //default import deprecated
@@ -21,14 +21,26 @@ import {
 } from "@mui/icons-material";
 
 //Mock Data
-import { data } from "./Datalist";
-import { useSelector } from "react-redux";
+
+import { useDispatch, useSelector } from "react-redux";
 import CircleChart from "../Component/CircleChart";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getFirestore,
+} from "firebase/firestore";
+import { addCustomerDocData } from "../../Store/Slices/coustomerData";
 
 const Example = () => {
   const COUSTOMER_DATA = useSelector(
     (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
   );
+  const ALL_COUSTOMER_DATA = useSelector(
+    (state) => state.coustomer_data.COUSTOMER_DATA_DOC
+  );
+  const loadSW = useSelector((state) => state.coustomer_data.DATA_LOAD);
   const columns = useMemo(
     () => [
       {
@@ -40,7 +52,7 @@ const Example = () => {
             accessorFn: (row) => `${row.Name} `, //accessorFn used to join multiple data into a single cell
             id: "name", //id is still required when using accessorFn instead of accessorKey
             header: "Name",
-            size: 250,
+            size: 150,
             Cell: ({ renderedCellValue, row }) => (
               <Box
                 sx={{
@@ -66,7 +78,7 @@ const Example = () => {
             accessorKey: "Mobile", //accessorKey used to define `data` column. `id` gets set to accessorKey automatically
             enableClickToCopy: true,
             header: "Mobile",
-            size: 300,
+            size: 150,
             filterVariant: "text",
           },
         ],
@@ -74,27 +86,22 @@ const Example = () => {
       {
         id: "id",
         header: "Total Sales",
-
         columns: [
           {
             accessorKey: "Total",
             // filterVariant: 'range', //if not using filter modes feature, use this instead of filterFn
-            filterFn: "between",
+            filterFn: "grater",
             header: "Total",
-            size: 200,
+            size: 100,
             //custom conditional format and styling
             Cell: ({ cell }) => (
               <Box
                 component="span"
                 sx={(theme) => ({
-                  backgroundColor:
-                    cell.getValue() < 50_000
-                      ? theme.palette.error.dark
-                      : cell.getValue() >= 50_000 && cell.getValue() < 75_000
-                      ? theme.palette.warning.dark
-                      : theme.palette.success.dark,
+                  // color: theme.palette.success.dark,
                   borderRadius: "0.25rem",
-                  color: "#fff",
+                  color: "#6D7BE3",
+                  fontWeight: "bold",
                   maxWidth: "9ch",
                   p: "0.25rem",
                 })}
@@ -110,14 +117,87 @@ const Example = () => {
           },
         ],
       },
+      {
+        accessorKey: "Debt",
+        // filterVariant: 'range', //if not using filter modes feature, use this instead of filterFn
+        filterFn: "between",
+        header: "Debt",
+        size: 100,
+        //custom conditional format and styling
+        Cell: ({ cell }) => (
+          <Box
+            component="span"
+            sx={(theme) => ({
+              backgroundColor:
+                cell.getValue() > 0
+                  ? theme.palette.warning.dark
+                  : theme.palette.success.dark,
+              borderRadius: "0.25rem",
+              color: "#fff",
+              maxWidth: "9ch",
+              p: "0.25rem",
+            })}
+          >
+            {cell.getValue()?.toLocaleString?.("en-US", {
+              style: "currency",
+              currency: "LKR",
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
+          </Box>
+        ),
+      },
+      {
+        id: "id",
+        header: "Referal Sales",
+        columns: [
+          {
+            accessorFn: (row) => `${row.Total} `,
+            accessorKey: "Ref_total",
+            // filterVariant: 'range', //if not using filter modes feature, use this instead of filterFn
+            filterFn: "grater",
+            header: "Referal Total",
+            size: 100,
+            //custom conditional format and styling
+            Cell: ({ cell, row }) => (
+              <Box
+                component="span"
+                sx={(theme) => ({
+                  borderRadius: "0.25rem",
+                  color: "#288F60",
+                  fontWeight: "bold",
+                  maxWidth: "9ch",
+                })}
+              >
+                <h1>
+                  {cell.getValue()?.toLocaleString?.("en-US", {
+                    style: "currency",
+                    currency: "LKR",
+
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </h1>
+              </Box>
+            ),
+          },
+        ],
+      },
     ],
     []
   );
 
+  const dispatch = useDispatch();
+  useEffect(() => {
+    // Anything in here is fired on component mount.
+    return () => {
+      // Anything in here is fired on component unmount.
+    };
+  }, []);
   return (
     <MaterialReactTable
       columns={columns}
-      data={Object.values(COUSTOMER_DATA).map((e) => e)}
+      data={Object.values(ALL_COUSTOMER_DATA).map((e) => e)}
       enableColumnFilterModes
       enableColumnOrdering
       enableGrouping
@@ -134,7 +214,9 @@ const Example = () => {
             alignItems: "center",
           }}
         >
-          <div className="flex items-center justify-center flex-col"></div>
+          <div className="">
+            <h1>Coustomer Dashboard</h1>{" "}
+          </div>
         </Box>
       )}
       renderRowActionMenuItems={({ closeMenu }) => [
@@ -179,8 +261,17 @@ const Example = () => {
         };
 
         const handleContact = () => {
-          table.getSelectedRowModel().flatRows.map((row) => {
-            alert("contact " + row.getValue("name"));
+          const db = getFirestore();
+          const collectionRef = collection(db, "Coustomers");
+          const q = query(collectionRef);
+          onSnapshot(q, (snapshot) => {
+            const documentsData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            dispatch(addCustomerDocData(documentsData));
+
+            console.log(documentsData);
           });
         };
 
@@ -192,7 +283,7 @@ const Example = () => {
               onClick={handleDeactivate}
               variant="contained"
             >
-              Deactivate
+              Delete
             </Button>
             <Button
               color="success"
@@ -203,12 +294,12 @@ const Example = () => {
               Activate
             </Button>
             <Button
+              disabled={loadSW}
               color="info"
-              disabled={!table.getIsSomeRowsSelected()}
               onClick={handleContact}
               variant="contained"
             >
-              Contact
+              Load Coustomer Data
             </Button>
           </div>
         );

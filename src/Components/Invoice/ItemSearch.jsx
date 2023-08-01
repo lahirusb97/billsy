@@ -15,7 +15,7 @@ import { searchInvoiceItems } from "../../Store/Slices/InvoiceSlice";
 
 export default function ItemSearch() {
   const dispatch = useDispatch();
-  const StockData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+  const StockData = useSelector((state) => state.shop_data.SELECTED_SHOP);
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
   // const CURRENT_SHOP = useSelector((state) => state.user_data.CURRENT_SHOP);
 

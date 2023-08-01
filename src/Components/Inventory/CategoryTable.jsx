@@ -36,7 +36,8 @@ function Row(props) {
   const [inputcate, setinputcate] = React.useState("");
   const handleOpen = () => (Stock_manage ? setOpen2(true) : setOpen2(false));
   const handleClose = () => setOpen2(false);
-  const StockData = useSelector((state) => state.stock_data.CATEGORY_DATA);
+  const StockData = useSelector((state) => state.shop_data.SELECTED_SHOP);
+
   const allStocks = useSelector((state) => state.stock_data.ALL_STOCKS);
   const Stock_manage = useSelector(
     (state) => state.user_data.userData["Stock_manage"]
