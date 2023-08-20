@@ -4,7 +4,14 @@ import {
   Payments,
   PhoneAndroid,
 } from "@mui/icons-material";
-import { Autocomplete, Box, Button, Switch, TextField } from "@mui/material";
+import {
+  Autocomplete,
+  Box,
+  Button,
+  CircularProgress,
+  Switch,
+  TextField,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import InvoiceDataTable from "./InvoiceDataTable";
@@ -36,6 +43,9 @@ export default function InvoiceTable() {
   const COUSTOMER_DATA = useSelector(
     (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
   );
+  const COUSTOMER_DATA_DOC = useSelector(
+    (state) => state.coustomer_data.COUSTOMER_DATA_DOC
+  );
 
   const CATEGORY_DATA = useSelector((state) => state.shop_data.SELECTED_SHOP);
 
@@ -55,7 +65,7 @@ export default function InvoiceTable() {
   const [nameError, setNameError] = useState(false);
   const [mobileError, setMobileError] = useState(false);
   const [subselectedOptionError, setSubSelectedOptionError] = useState(false);
-
+  const [loading, setloading] = useState(false);
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDateTime(new Date());
@@ -133,7 +143,7 @@ export default function InvoiceTable() {
 
   const normalCoustomerBill = async (data) => {
     const db = getFirestore();
-
+    setloading(true);
     try {
       const collectionRef = collection(
         db,
@@ -164,11 +174,13 @@ export default function InvoiceTable() {
           return modifiedObject;
         }),
         Total: TOTAL,
+        Billed_by: userData["Name"],
         Cost: TOTAL_COST,
         Name: name,
+        Coustomer_Id: checked ? subselectedOption["ID"] : "none",
         Mobile: mobile.toString(),
         Date: currentDateTime,
-        Payment: payment,
+        Payment: parseInt(payment),
         Ref_id: refer ? selectedOption["ID"] : "none",
         Bill_id: `${CATEGORY_DATA["Bill_char"]}${
           CATEGORY_DATA["Bill_number"] + 1
@@ -183,12 +195,48 @@ export default function InvoiceTable() {
         await updateDoc(washingtonRef, updateData);
 
         reduceStock(BILL_ITEM);
-
+        if (!checked) {
+          setloading(false);
+        }
         if (checked) {
           myCoustomerUpdate();
         }
       });
+      //TODO REF UPDATE MANUAL COSTOMER
+      if (refer) {
+        const CheckRefID = COUSTOMER_DATA_DOC.filter(
+          (coustomer) => coustomer["id"] === selectedOption["ID"]
+        );
+
+        if (CheckRefID.length > 0) {
+          const refcoustomerRef = doc(db, "Coustomers", selectedOption["ID"]);
+          await updateDoc(refcoustomerRef, {
+            Ref_total: CheckRefID[0]["Ref_total"] + TOTAL,
+            Ref_cost: CheckRefID[0]["Cost"] + TOTAL_COST,
+          }).then(() => {
+            console.log("LOADED REFCOSTOMER UPDATED ");
+          });
+        } else {
+          selectedOption["ID"];
+          const docRef = doc(db, "Coustomers", selectedOption["ID"]);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+
+            await updateDoc(docRef, {
+              Ref_total: data["Ref_total"] + TOTAL,
+              Ref_cost: data["Ref_cost"] + TOTAL_COST,
+            }).then(() => {
+              console.log("GET REFCOSTOMER UPDATED ");
+            });
+          }
+        }
+      }
+      //TODO REF UPDATE MANUAL COSTOMER
     } catch (error) {
+      setloading(false);
+
       dispatch(
         openScackbar({
           open: true,
@@ -201,36 +249,70 @@ export default function InvoiceTable() {
 
   const myCoustomerUpdate = async () => {
     try {
-      const documentSnapshot = await getDoc(washingtonRef);
-      const COUSTOMER_DATA = documentSnapshot.data().Coustomers;
+      const CheckoustomerID = COUSTOMER_DATA_DOC.filter(
+        (coustomer) => coustomer["id"] === subselectedOption["ID"]
+      );
 
-      // Make changes to the COUSTOMER_DATA object based on the conditions
-      if (subselectedOption) {
-        const db = getFirestore();
-        const washingtonRef = doc(db, "Coustomers", subselectedOption["ID"]);
+      const db = getFirestore();
+      const coustomerRef = doc(db, "Coustomers", subselectedOption["ID"]);
+      if (CheckoustomerID.length > 0) {
+        await updateDoc(coustomerRef, {
+          Total: CheckoustomerID[0]["Total"] + TOTAL,
+          Cost: CheckoustomerID[0]["Cost"] + TOTAL_COST,
+          Debt: CheckoustomerID[0]["Debt"] + (TOTAL - payment),
+        }).then(() => setloading(false));
+      } else {
+        const docRef = doc(db, "Coustomers", subselectedOption["ID"]);
+        const docSnap = await getDoc(docRef);
 
-        COUSTOMER_DATA[subselectedOption["ID"]] = {
-          ...subselectedOption,
-          Total: subselectedOption["Total"] + TOTAL,
-          Cost: subselectedOption["Cost"] + TOTAL_COST,
-        };
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          await updateDoc(docRef, {
+            Total: data["Total"] + TOTAL,
+            Cost: data["Cost"] + TOTAL_COST,
+            Debt: data["Debt"] + (TOTAL - payment),
+          }).then(() => setloading(false));
+        } else {
+          // docSnap.data() will be undefined in this case
+        }
       }
+      if (refer) {
+        const CheckRefID = COUSTOMER_DATA_DOC.filter(
+          (coustomer) => coustomer["id"] === selectedOption["ID"]
+        );
 
-      if (refer && selectedOption) {
-        COUSTOMER_DATA[selectedOption["ID"]] = {
-          ...selectedOption,
-          Ref_total: refer
-            ? selectedOption["Ref_total"] + TOTAL
-            : selectedOption["Ref_total"],
-          Ref_cost: refer
-            ? selectedOption["Ref_cost"] + TOTAL_COST
-            : selectedOption["Ref_cost"],
-        };
+        if (CheckRefID.length > 0) {
+          const refcoustomerRef = doc(db, "Coustomers", selectedOption["ID"]);
+          await updateDoc(refcoustomerRef, {
+            Ref_total: CheckRefID[0]["Ref_total"] + TOTAL,
+            Ref_cost: CheckRefID[0]["Cost"] + TOTAL_COST,
+          }).then(() => {
+            setloading(false);
+          });
+        } else {
+          selectedOption["ID"];
+          const docRef = doc(db, "Coustomers", selectedOption["ID"]);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+
+            await updateDoc(docRef, {
+              Ref_total: data["Ref_total"] + TOTAL,
+              Ref_cost: data["Ref_cost"] + TOTAL_COST,
+            }).then(() => {
+              setloading(false);
+            });
+          } else {
+            // docSnap.data() will be undefined in this case
+            setloading(false);
+          }
+        }
       }
-
-      // Update the entire document with the modified COUSTOMER_DATA
-      await setDoc(washingtonRef, { Coustomers: COUSTOMER_DATA });
     } catch (err) {
+      setloading(false);
+
       dispatch(
         openScackbar({ open: true, type: "error", msg: "Network Error" })
       );
@@ -266,7 +348,7 @@ export default function InvoiceTable() {
           );
         })
         .catch((err) => {
-          console.log(err);
+          setloading(false);
         });
     });
   };
@@ -491,12 +573,16 @@ export default function InvoiceTable() {
         >
           Clear
         </button>
-        <button
-          onClick={handleBill}
-          className="bg-greendark px-8 py-2 text-mywhite m-2"
-        >
-          Bill
-        </button>
+        {!loading ? (
+          <button
+            onClick={handleBill}
+            className="bg-greendark px-8 py-2 text-mywhite m-2"
+          >
+            Bill
+          </button>
+        ) : (
+          <CircularProgress />
+        )}
       </div>
 
       <DrawerRight
@@ -510,6 +596,7 @@ export default function InvoiceTable() {
         setOpen={setOpenmodal}
         open={openmodal}
         name={name}
+        payment={payment}
       />
     </div>
   );

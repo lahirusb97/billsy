@@ -230,10 +230,11 @@ export default function NavBar() {
             <Typography variant="h6" noWrap component="div" className="flex">
               <h1 className="text-black ">
                 {shopName}
-                {/* {location.pathname === "/"
+                {location.pathname === "/"
                   ? "Dashboard"
                   : location.pathname.substring(1).charAt(0).toUpperCase() +
-                    location.pathname.substring(2)} */}
+                    location.pathname.substring(2)}{" "}
+                */}
               </h1>
               <button onClick={() => dispatch(switchShop())}>
                 <Settings className="text-myred mx-2" />
@@ -242,7 +243,7 @@ export default function NavBar() {
           </Toolbar>
         </AppBar>
         <Drawer variant="permanent" open={open}>
-          <DrawerHeader>
+          <DrawerHeader style={{ height: "auto" }}>
             <h1 className="text-black ">Bestway Mobile</h1>
 
             <IconButton

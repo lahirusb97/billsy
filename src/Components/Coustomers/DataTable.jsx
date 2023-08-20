@@ -152,7 +152,6 @@ const Example = () => {
         header: "Referal Sales",
         columns: [
           {
-            accessorFn: (row) => `${row.Total} `,
             accessorKey: "Ref_total",
             // filterVariant: 'range', //if not using filter modes feature, use this instead of filterFn
             filterFn: "grater",
@@ -173,7 +172,6 @@ const Example = () => {
                   {cell.getValue()?.toLocaleString?.("en-US", {
                     style: "currency",
                     currency: "LKR",
-
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   })}
@@ -270,8 +268,6 @@ const Example = () => {
               ...doc.data(),
             }));
             dispatch(addCustomerDocData(documentsData));
-
-            console.log(documentsData);
           });
         };
 

@@ -21,7 +21,13 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
-export default function BillPrint({ setOpen, open, name, ClearAllData }) {
+export default function BillPrint({
+  setOpen,
+  open,
+  name,
+  ClearAllData,
+  payment,
+}) {
   const COUSTOMER_DATA = useSelector(
     (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
   );
@@ -128,8 +134,18 @@ export default function BillPrint({ setOpen, open, name, ClearAllData }) {
                 </div>
               ))}
               <hr></hr>
+              <div className="grid">
+                <h1 className="text-end px-2 font-black">Grand Total Rs.</h1>
+              </div>
               <h1 className="text-end px-2 font-black">
                 Grand Total Rs. <span className="font-semibold">{TOTAL}</span>
+              </h1>
+              <h1 className="text-end px-2 font-semibold">
+                Payment Rs. <span className="font-semibold">{payment}</span>
+              </h1>
+              <h1 className="text-end px-2 font-semibold">
+                Payment Left.{" "}
+                <span className="font-semibold">{TOTAL - payment}</span>
               </h1>
               <hr></hr>
             </div>

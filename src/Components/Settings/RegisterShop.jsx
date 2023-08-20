@@ -78,7 +78,7 @@ export default function RegisterShop() {
     }
   };
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="">
       <FormControl variant="standard">
         <InputLabel htmlFor="input-with-icon-adornment">Shop Name</InputLabel>
         <Input

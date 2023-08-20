@@ -7,6 +7,7 @@ import confirmModal from "./Slices/Component/confirmModal";
 import InvoiceSlice from "./Slices/InvoiceSlice";
 import coustomerData from "./Slices/CoustomerData";
 import shopData from "./Slices/shopData";
+import billSlice from "./Slices/billlSlice";
 
 export const store = configureStore({
   reducer: {
@@ -18,5 +19,6 @@ export const store = configureStore({
     invoice_data: InvoiceSlice,
     coustomer_data: coustomerData,
     shop_data: shopData,
+    bill_data: billSlice,
   },
 });
