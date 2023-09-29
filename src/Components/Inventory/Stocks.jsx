@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 //
 import SearchCom from "../Component/SearchCom";
 import EditProduct from "./EditProduct";
+import ItemTable from "./ItemTable";
 //
 export default function Stocks() {
   const [state, setState] = useState(false);
@@ -59,9 +60,8 @@ export default function Stocks() {
       ) : (
         <></>
       )}
-      <SearchCom />
 
-      <StockTable
+      <ItemTable
         state={state}
         setState={setState}
         edit={edit}

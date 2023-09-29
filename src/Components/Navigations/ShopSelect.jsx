@@ -24,6 +24,8 @@ import RegisterShop from "../Settings/RegisterShop";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
 import { addCustomerData } from "../../Store/Slices/CoustomerData";
 import { shopselect } from "../../Store/Slices/shopData";
+import "../firebaseConfig";
+import { setAllShops } from "../../Store/Slices/shopSlice";
 export default function ShopSelect() {
   const authId = useSelector((state) => state.user_data.authData);
   const userData = useSelector((state) => state.user_data.userData);
@@ -36,6 +38,16 @@ export default function ShopSelect() {
   useEffect(() => {
     const getNestedDocs = async () => {
       try {
+        if (userData["Admin"]) {
+          const db = getFirestore();
+          const querySnapshot = await getDocs(collection(db, "Shop"));
+          const shopLi = [];
+          querySnapshot.forEach((doc) => {
+            shopLi.push({ ...doc.data(), Id: doc.id });
+          });
+
+          dispatch(setAllShops(shopLi));
+        }
         const db = getFirestore();
         const parentDocRef = collection(db, `Users/${authId}/Accessible_shop`);
         const nestedDocsSnapshot = await getDocs(parentDocRef);
@@ -68,6 +80,7 @@ export default function ShopSelect() {
           }
         });
       } catch (error) {
+        console.log(error);
         dispatch(
           openScackbar({
             open: true,
@@ -122,6 +135,7 @@ export default function ShopSelect() {
       }
     });
   };
+
   return (
     <div className="w-full h-screen flex items-center justify-center">
       {shopList.length > 0 ? (

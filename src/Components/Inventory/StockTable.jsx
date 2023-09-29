@@ -94,7 +94,6 @@ export default function CustomPaginationActionsTable({
   edit,
 }) {
   const ALL_STOCKS = useSelector((state) => state.stock_data.FILTER_STOCK);
-
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -184,6 +183,7 @@ export default function CustomPaginationActionsTable({
                 onClick={() => {
                   if (Stock_manage) {
                     setState(true);
+                    console.log(row);
                     setEdit(true, row);
                   } else {
                     setState(false);

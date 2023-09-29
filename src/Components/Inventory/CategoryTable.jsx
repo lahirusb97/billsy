@@ -149,7 +149,11 @@ function Row(props) {
           await updateDoc(dbArrayRef, {
             Category: arrayRemove(cate),
           }).then(() => {
-            console.log(StockData);
+            openScackbar({
+              open: true,
+              type: "sucess",
+              msg: "Category Deleted",
+            });
           });
         }
         setRows((prevRows) => prevRows.filter((row) => row.category !== cate));
@@ -325,6 +329,7 @@ export default function CollapsibleTable() {
     (state) => state.user_data.userData["Stock_manage"]
   );
 
+  const dispatch = useDispatch();
   const [rows, setrows] = React.useState([]);
 
   React.useEffect(() => {
@@ -362,7 +367,7 @@ export default function CollapsibleTable() {
   const handleOpen = () => (Stock_manage ? setOpen(true) : setOpen(false));
   const handleClose = () => setOpen(false);
   //!addCategory
-  const addCategory = () => {
+  const addCategory = async () => {
     const db = getFirestore();
 
     // Replace 'collectionName' with the name of your collection and 'documentId' with the ID of your document
@@ -372,9 +377,19 @@ export default function CollapsibleTable() {
     const newData = inputcate;
 
     // Use the 'arrayUnion' function to add the newData to the 'dataArray' field in your document
-    updateDoc(collectionRef, {
+    await updateDoc(collectionRef, {
       Category: arrayUnion(newData),
-    });
+    })
+      .then(() =>
+        dispatch(
+          openScackbar({
+            open: true,
+            type: "success",
+            msg: `Category Added`,
+          })
+        )
+      )
+      .catch((e) => console.log(e));
   };
 
   return (

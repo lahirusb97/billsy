@@ -28,9 +28,9 @@ export default function BillPrint({
   ClearAllData,
   payment,
 }) {
-  const COUSTOMER_DATA = useSelector(
-    (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
-  );
+  // const COUSTOMER_DATA = useSelector(
+  //   (state) => state.coustomer_data.COUSTOMER_DATA["Coustomers"]
+  // );
   const Shop_Data = useSelector((state) => state.shop_data.SELECTED_SHOP);
   const CATEGORY_DATA = useSelector((state) => state.stock_data.CATEGORY_DATA);
   const INVOICE_ITEMS = useSelector(
@@ -85,7 +85,7 @@ export default function BillPrint({
         />
 
         <div ref={componentRef}>
-          <div className="mt-1 mb-3 border-4 border-black p-2">
+          <div className="mt-1 mb-3 border-4 border-black p-2 ">
             <h1 className=" font-black text-4xl text-center">
               {Shop_Data[["Name"]]}
             </h1>
@@ -94,13 +94,13 @@ export default function BillPrint({
             </h3>
 
             <div className="flex justify-center items-center">
-              <PhoneAndroidOutlined />
-              {Shop_Data["Contact_num"].map((e, i) => (
-                <h6 className="ml-2" key={e}>
-                  {e}
-                  {Shop_Data["Contact_num"].length - 1 === i ? "" : " /"}
-                </h6>
-              ))}
+              <div className="flex flex-col">
+                {Shop_Data["Contact_num"].map((e, i) => (
+                  <h6 className="ml-2" key={e}>
+                    {e}
+                  </h6>
+                ))}
+              </div>
             </div>
           </div>
           <div className="ml-2">
@@ -135,15 +135,15 @@ export default function BillPrint({
               ))}
               <hr></hr>
               <div className="grid">
-                <h1 className="text-end px-2 font-black">Grand Total Rs.</h1>
+                <h1 className="text-start px-2 font-black">Grand Total Rs.</h1>
               </div>
-              <h1 className="text-end px-2 font-black">
+              <h1 className="text-start px-2 font-black">
                 Grand Total Rs. <span className="font-semibold">{TOTAL}</span>
               </h1>
-              <h1 className="text-end px-2 font-semibold">
+              <h1 className="text-start px-2 font-semibold">
                 Payment Rs. <span className="font-semibold">{payment}</span>
               </h1>
-              <h1 className="text-end px-2 font-semibold">
+              <h1 className="text-start px-2 font-semibold">
                 Payment Left.{" "}
                 <span className="font-semibold">{TOTAL - payment}</span>
               </h1>
@@ -155,9 +155,6 @@ export default function BillPrint({
               </p>
               <p className="text-center text-xs">{formattedTime}</p>
             </div>
-            <p className="text-center text-xs font-black">
-              Techway systems: 071-6320662
-            </p>
           </div>
         </div>
 

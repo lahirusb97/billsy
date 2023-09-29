@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
 import { openScackbar } from "../../Store/Slices/SnackBarSlice";
+import { Paper } from "@mui/material";
 export default function RegisterShop() {
   const [shopName, setShopName] = useState("");
   const dispatch = useDispatch();
@@ -78,25 +79,30 @@ export default function RegisterShop() {
     }
   };
   return (
-    <div className="">
-      <FormControl variant="standard">
-        <InputLabel htmlFor="input-with-icon-adornment">Shop Name</InputLabel>
-        <Input
-          onChange={(e) => setShopName(e.target.value)}
-          id="input-with-icon-adornment"
-          startAdornment={
-            <InputAdornment position="start">
-              <AddBusinessIcon className="text-greendark" />
-            </InputAdornment>
-          }
-        />
-      </FormControl>
-      <button
-        onClick={registerShop}
-        className="bg-mygreen px-4 py-2 font-semibold my-2"
+    <div className="ml-2">
+      <Paper
+        sx={{ padding: ".5rem", maxWidth: "16rem", margin: ".5rem 0" }}
+        variant="outlined"
       >
-        Create Shop
-      </button>
+        <FormControl variant="standard">
+          <InputLabel htmlFor="input-with-icon-adornment">Shop Name</InputLabel>
+          <Input
+            onChange={(e) => setShopName(e.target.value)}
+            id="input-with-icon-adornment"
+            startAdornment={
+              <InputAdornment position="start">
+                <AddBusinessIcon className="text-greendark" />
+              </InputAdornment>
+            }
+          />
+        </FormControl>
+        <button
+          onClick={registerShop}
+          className="bg-mygreen px-2 py-2 font-semibold my-2  w-full"
+        >
+          Create Shop
+        </button>
+      </Paper>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import LoadingAni from "./assets/Animations/LoadingAni.json";
 import Lottie from "react-lottie";
 import SnacBar from "./Components/Component/SnacBar";
 import ConfirmModal from "./Components/Component/ConfirmModal";
+import { CircularProgress } from "@mui/material";
 //Router
 
 function App() {
@@ -28,7 +29,6 @@ function App() {
         onSnapshot(doc(db, "Users", user.uid), (doc) => {
           if (doc.exists()) {
             dispatch(setuserData({ user: doc.data(), auth: user.uid }));
-
             setLogin(false);
           } else {
             setLogin(true);
@@ -42,15 +42,6 @@ function App() {
     });
   }, []);
 
-  const LoadingOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: LoadingAni,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
-
   return (
     <div>
       {!login ? (
@@ -63,11 +54,9 @@ function App() {
       ) : (
         <div className="flex justify-center items-center h-screen">
           <div>
-            <Lottie options={LoadingOptions} height={200} width={200} />
+            <CircularProgress size={60} />
 
-            <h1 className="relative flex justify-center -top-10">
-              Loading....
-            </h1>
+            <h1 className="relative flex justify-center ">Loading....</h1>
           </div>
         </div>
       )}

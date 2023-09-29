@@ -51,7 +51,7 @@ export default function DrawerRight({ comp, state, setState }) {
               width: navWidth,
               display: "block",
               color: "black",
-              marginTop: "70px",
+              marginTop: "20px",
             }}
             role="button"
             // onClick={toggleDrawer(false)}

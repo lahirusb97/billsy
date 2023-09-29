@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "billing-d8390"
-  }
+    "default": "billing-d8390",
+    "staging": "bestway-1371f"
+  },
+  "targets": {},
+  "etags": {}
 }

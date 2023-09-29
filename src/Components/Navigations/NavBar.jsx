@@ -1,5 +1,7 @@
 import * as React from "react";
 import { styled, useTheme } from "@mui/material/styles";
+// import { makeStyles } from "@mui/styles";
+
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
@@ -21,32 +23,61 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getFirestore,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 //* Icons
 import {
+  AccountBalance,
   AccountBalanceOutlined,
+  AddShoppingCart,
   AddShoppingCartOutlined,
   BarChartOutlined,
+  Calculate,
+  Dashboard,
   DashboardCustomizeOutlined,
+  Inventory,
   Inventory2Outlined,
   LogoutOutlined,
+  NotificationAdd,
+  Notifications,
+  NotificationsActiveOutlined,
+  People,
   PeopleOutlineOutlined,
   Settings,
+  SettingsAccessibility,
   SettingsApplicationsRounded,
   SettingsApplicationsTwoTone,
   SettingsBluetoothRounded,
   SettingsOutlined,
+  SettingsPhone,
 } from "@mui/icons-material";
 import MainRoutes from "./MainRoutes";
 import { getAuth, signOut } from "firebase/auth";
 import AnimateRoute from "./AnimateRoute";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Paper } from "@mui/material";
+import { CircularProgress, Paper, TextField } from "@mui/material";
 import DrawerRight from "../Component/DrawerRight";
 import { useEffect } from "react";
 import useWindowDimensions from "../../Hooks/WindowSize";
 import { setWidth } from "../../Store/Slices/mainBoxSize";
 import { setCurrentShop, switchShop } from "../../Store/Slices/userDataSlice";
+import {
+  setCategory,
+  setStock,
+  stockFilter,
+} from "../../Store/Slices/stockData";
+import { shopselect } from "../../Store/Slices/shopData";
+import { getDatabase, onValue, ref } from "firebase/database";
+import { setnavWidth } from "../../Store/Slices/Component/navWidth";
 
 // todo Styles start
 const drawerWidth = 250;
@@ -126,15 +157,17 @@ export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  // const classes = useStyles();
   const { height, width } = useWindowDimensions();
   const mainbox_width = React.useRef();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [selectNav, setSelectNav] = React.useState(0);
   const [selectShop, setselectShop] = React.useState("Shop1");
-  const [age, setAge] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
 
   const handleChange = (event) => {
+    setLoading(true);
     setAge(event.target.value);
   };
   useEffect(() => {
@@ -150,116 +183,128 @@ export default function NavBar() {
   };
   const adminAccess = useSelector((state) => state.user_data.userData["Admin"]);
   const shopName = useSelector((state) => state.user_data.CURRENT_SHOP["Name"]);
+  const username = useSelector((state) => state.user_data.userData["Name"]);
+  const SHOP_LIST = useSelector((state) => state.user_data.SHOP_LIST);
+
   const navList = [
     {
       name: "Dashboard",
-      Icon: <DashboardCustomizeOutlined />,
+      Icon: <Dashboard color="primary.iconcolor" />,
       path: "/",
       protected: false,
     },
     {
       name: "Inventory",
-      Icon: <Inventory2Outlined />,
+      Icon: <Inventory color="primary.iconcolor" />,
       path: "/inventory",
       protected: false,
     },
     {
       name: "Invoice",
-      Icon: <AddShoppingCartOutlined />,
+      Icon: <AddShoppingCart color="primary.iconcolor" />,
       path: "/invoice",
       protected: false,
     },
     {
       name: "Coustomers",
-      Icon: <PeopleOutlineOutlined />,
+      Icon: <People color="primary.iconcolor" />,
       path: "/coustomers",
       protected: false,
     },
     {
       name: "Employees",
-      Icon: <PeopleOutlineOutlined />,
+      Icon: <People color="primary.iconcolor" />,
       path: "/employees",
       protected: true,
     },
-    {
-      name: "Accounting",
-      Icon: <AccountBalanceOutlined />,
-      path: "/accounting",
-      protected: false,
-    },
-    {
-      name: "Report",
-      Icon: <BarChartOutlined />,
-      path: "/report",
-      protected: false,
-    },
+    // {
+    //   name: "Accounting",
+    //   Icon: <Calculate color="primary.iconcolor" />,
+    //   path: "/accounting",
+    //   protected: false,
+    // },
+
     {
       name: "Settings",
-      Icon: <SettingsOutlined className="text-red-400" />,
+      Icon: <Settings color="primary.iconcolor" className="text-red-400" />,
       path: "/settings",
       protected: true,
     },
   ];
+  const [age, setAge] = React.useState(SHOP_LIST[0]);
+  const refs = React.useRef(null);
+
+  useEffect(() => {
+    if (open) {
+      dispatch(setnavWidth(250));
+    } else {
+      dispatch(setnavWidth(65));
+    }
+  }, [open]);
 
   return (
     <AnimateRoute>
       <Box sx={{ display: "flex" }}>
-        <CssBaseline />
-        <AppBar
-          position="fixed"
-          style={{
-            background: "#ffffff",
-            boxShadow: "unset",
+        <Drawer
+          ref={refs}
+          PaperProps={{
+            elevation: 2,
+            square: false,
+            style: { backgroundColor: "white", borderRadius: "1rem" },
           }}
+          variant="permanent"
           open={open}
         >
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              edge="start"
-              sx={{
-                marginRight: 5,
-                ...(open && { display: "none" }),
-              }}
-            >
-              <MenuIcon style={{ color: "1D1D1D" }} />
-            </IconButton>
-
-            <Typography variant="h6" noWrap component="div" className="flex">
-              <h1 className="text-black ">
-                {shopName}
-                {location.pathname === "/"
-                  ? "Dashboard"
-                  : location.pathname.substring(1).charAt(0).toUpperCase() +
-                    location.pathname.substring(2)}{" "}
-                */}
-              </h1>
-              <button onClick={() => dispatch(switchShop())}>
-                <Settings className="text-myred mx-2" />
-              </button>
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Drawer variant="permanent" open={open}>
           <DrawerHeader style={{ height: "auto" }}>
-            <h1 className="text-black ">Bestway Mobile</h1>
-
-            <IconButton
-              style={{
-                color: "#1D1D1D",
-              }}
-              onClick={handleDrawerClose}
-            >
-              {theme.direction === "rtl" ? (
-                <ChevronRightIcon />
+            <div className="flex justify-start w-full ml-2">
+              {open ? (
+                <Typography
+                  variant="h6"
+                  noWrap
+                  component="div"
+                  className="flex"
+                >
+                  <button onClick={() => dispatch(switchShop())}>
+                    <Settings color="primary.iconcolor" className=" mx-2" />
+                  </button>
+                  <h1 className="text-black ">
+                    {shopName}
+                    {/* {location.pathname === "/"
+                      ? "Dashboard"
+                      : location.pathname.substring(1).charAt(0).toUpperCase() +
+                        location.pathname.substring(2)}{" "} */}
+                  </h1>
+                </Typography>
               ) : (
-                <ChevronLeftIcon />
+                <></>
               )}
-            </IconButton>
+            </div>
+            {open ? (
+              <IconButton onClick={handleDrawerClose}>
+                {theme.direction === "rtl" ? (
+                  <ChevronRightIcon color="primary.iconcolor" />
+                ) : (
+                  <ChevronLeftIcon color="primary.iconcolor" />
+                )}
+              </IconButton>
+            ) : (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleDrawerOpen}
+                edge="start"
+                sx={{
+                  ...(open && { display: "none" }),
+                }}
+              >
+                <MenuIcon
+                  color="primary.iconcolor"
+                  style={{ color: "1D1D1D" }}
+                />
+              </IconButton>
+            )}
           </DrawerHeader>
-          <Divider />
+          {console.log(selectNav)}
           <List>
             {navList.map((text, i) =>
               adminAccess ? (
@@ -272,7 +317,10 @@ export default function NavBar() {
                   sx={{
                     display: "block",
 
-                    background: selectNav === i ? "#7F55DA" : "#ffffff",
+                    background:
+                      location.pathname === text["path"]
+                        ? "#1B4DE4"
+                        : "#ffffff",
                   }}
                 >
                   <ListItemButton
@@ -299,13 +347,17 @@ export default function NavBar() {
                       primary={text["name"]}
                       sx={{
                         opacity: open ? 1 : 0,
-                        color: selectNav === i ? "#ffffff" : "#1D1D1D",
+                        color:
+                          location.pathname === text["path"]
+                            ? "#ffffff"
+                            : "#1D1D1D",
                       }}
                     />
                   </ListItemButton>
                 </ListItem>
               ) : !text.protected ? (
                 <ListItem
+                  // className={`${classes.listItem} ${classes.activeListItem}`}
                   onClick={() => {}}
                   key={text["name"]}
                   disablePadding
@@ -340,6 +392,14 @@ export default function NavBar() {
                 <></>
               )
             )}
+          </List>
+          <List
+            sx={{
+              position: "fixed",
+              bottom: 0,
+              textAlign: "center",
+            }}
+          >
             <ListItem disablePadding sx={{ display: "block" }}>
               <ListItemButton
                 onClick={() => {
@@ -383,10 +443,24 @@ export default function NavBar() {
             ref={mainbox_width}
             component="main"
             className="bg-mymainbg w-full h-screen"
-            sx={{ flexGrow: 1, p: 0, maxWidth: "1920px" }}
+            sx={{ flexGrow: 1, p: 1, maxWidth: "1920px" }}
           >
-            <DrawerHeader />
-
+            {/* <DrawerHeader /> */}
+            <Typography
+              color="primary.iconcolor"
+              variant="h5"
+              sx={{ fontWeight: "bold" }}
+            >
+              {location.pathname === "/"
+                ? "Dashboard"
+                : location.pathname.substring(1).charAt(0).toUpperCase() +
+                  location.pathname.substring(2)}{" "}
+            </Typography>
+            <div className="flex items-center absolute right-5 top-2">
+              <img src="images/profile.png" />
+              <p className="capitalize mx-2">{username}</p>
+              <NotificationsActiveOutlined />
+            </div>
             <MainRoutes />
           </Box>
         </div>

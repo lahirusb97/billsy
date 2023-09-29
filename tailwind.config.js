@@ -32,6 +32,7 @@ export default {
       purplelite: "#ECE3FF",
       //Gray
       grayLite: "#E6E6E6",
+      grayLite2: "#8C8EA6",
     },
     borderRadius: {
       borderinput: "20px",

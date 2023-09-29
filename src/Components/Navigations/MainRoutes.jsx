@@ -23,6 +23,7 @@ export default function MainRoutes() {
         <Route path="/employees" element={<Employees />} />
         <Route path="/accounting" element={<Accounting />} />
         <Route path="/report" element={<Report />} />
+        
       </Routes>
     </div>
   );

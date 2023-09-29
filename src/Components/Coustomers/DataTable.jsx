@@ -32,6 +32,7 @@ import {
   getFirestore,
 } from "firebase/firestore";
 import { addCustomerDocData } from "../../Store/Slices/coustomerData";
+import { color } from "framer-motion";
 
 const Example = () => {
   const COUSTOMER_DATA = useSelector(
@@ -52,25 +53,20 @@ const Example = () => {
             accessorFn: (row) => `${row.Name} `, //accessorFn used to join multiple data into a single cell
             id: "name", //id is still required when using accessorFn instead of accessorKey
             header: "Name",
-            size: 150,
+            size: 80,
             Cell: ({ renderedCellValue, row }) => (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                }}
-              >
+              <Box className="flex items-center justify-center">
                 <img
+                  style={{ borderRadius: "50%" }}
                   alt="avatar"
-                  width={40}
-                  height={40}
                   src={row.original.Img}
                   loading="lazy"
-                  style={{ borderRadius: "50%" }}
+                  className="w-14 h-14 object-cover bg-center border-rad rounded-s-full mr-2 "
                 />
                 {/* using renderedCellValue instead of cell.getValue() preserves filter match highlighting */}
-                <span>{renderedCellValue}</span>
+                <span className="capitalize font-semibold text-grayLite2">
+                  {renderedCellValue}
+                </span>
               </Box>
             ),
           },
@@ -80,6 +76,9 @@ const Example = () => {
             header: "Mobile",
             size: 150,
             filterVariant: "text",
+            Cell: ({ renderedCellValue }) => (
+              <Typography variant="inherit">{renderedCellValue}</Typography>
+            ),
           },
         ],
       },
@@ -194,6 +193,8 @@ const Example = () => {
   }, []);
   return (
     <MaterialReactTable
+      enableColumnFilters={false}
+      enableRowSelection
       columns={columns}
       data={Object.values(ALL_COUSTOMER_DATA).map((e) => e)}
       enableColumnFilterModes
@@ -201,7 +202,6 @@ const Example = () => {
       enableGrouping
       enablePinning
       enableRowActions
-      enableRowSelection
       initialState={{ showColumnFilters: true }}
       positionToolbarAlertBanner="bottom"
       renderDetailPanel={({ row }) => (

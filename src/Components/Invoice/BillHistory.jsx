@@ -15,9 +15,6 @@ export default function BillHistory() {
   const [open, setOpen] = React.useState(false);
   const OPENED_BILL = useSelector((state) => state.bill_data.OPENED_BILL);
 
-  const handleSearch = () => {
-    console.log(value.toDate());
-  };
   return (
     <div>
       <div className="flex flex-wrap">
@@ -30,25 +27,6 @@ export default function BillHistory() {
               onChange={(newValue) => setValue(newValue)}
             />
           </LocalizationProvider>
-        </div>
-        <div className="flex items-end ml-2">
-          <Box sx={{ display: "flex", alignItems: "flex-end" }}>
-            <Search sx={{ color: "action.active", mr: 1, my: 0.5 }} />
-            <TextField
-              id="input-with-sx"
-              label="Search Bill Id"
-              placeholder="Enter bill Id"
-              variant="standard"
-            />
-          </Box>
-          <Button
-            onClick={handleSearch}
-            style={{ marginLeft: "16px" }}
-            variant="contained"
-            startIcon={<Search />}
-          >
-            Search
-          </Button>
         </div>
       </div>
       <HIstoryTable dateTime={value} />

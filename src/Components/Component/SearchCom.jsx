@@ -27,52 +27,52 @@ export default function SearchCom() {
 
   const [inputValue, setInputValue] = useState("");
 
-  useEffect(() => {
-    if (allStocks.length > 0) {
-      if (value === "All" && subvalue === "All") {
-        //!ALL CATEGORYS
-        const filterdData = allStocks.filter((item) =>
-          item["Product_name"].includes(inputValue)
-        );
+  // useEffect(() => {
+  //   if (allStocks.length > 0) {
+  //     if (value === "All" && subvalue === "All") {
+  //       //!ALL CATEGORYS
+  //       const filterdData = allStocks.filter((item) =>
+  //         item["Product_name"].includes(inputValue)
+  //       );
 
-        dispatch(stockFilter(filterdData));
-      } else if (value !== "All" && subvalue === "All") {
-        //!SELECTED CATEGORYS NO SUB VALUE
+  //       dispatch(stockFilter(filterdData));
+  //     } else if (value !== "All" && subvalue === "All") {
+  //       //!SELECTED CATEGORYS NO SUB VALUE
 
-        const filterdData = allStocks.filter(
-          (item) =>
-            item["Product_name"].includes(inputValue) &&
-            item["Category"].includes(value)
-        );
+  //       const filterdData = allStocks.filter(
+  //         (item) =>
+  //           item["Product_name"].includes(inputValue) &&
+  //           item["Category"].includes(value)
+  //       );
 
-        //!WITH SUB VALUE AND CATE VALUE
-        dispatch(stockFilter(filterdData));
-      } else if (value !== "All" && subvalue !== "All") {
-        const filterdData = allStocks.filter(
-          (item) =>
-            item["Product_name"].includes(inputValue) &&
-            item["Category"].includes(value) &&
-            item["Sub_Category"].includes(subvalue)
-        );
+  //       //!WITH SUB VALUE AND CATE VALUE
+  //       dispatch(stockFilter(filterdData));
+  //     } else if (value !== "All" && subvalue !== "All") {
+  //       const filterdData = allStocks.filter(
+  //         (item) =>
+  //           item["Product_name"].includes(inputValue) &&
+  //           item["Category"].includes(value) &&
+  //           item["Sub_Category"].includes(subvalue)
+  //       );
 
-        dispatch(stockFilter(filterdData));
-      }
-    }
-    const catarray = ["All"];
-    const subcatarray = ["All"];
+  //       dispatch(stockFilter(filterdData));
+  //     }
+  //   }
+  //   const catarray = ["All"];
+  //   const subcatarray = ["All"];
 
-    shopData["Category"].forEach((element) => {
-      catarray.push(element);
-    });
-    if (shopData[value]) {
-      shopData[value].forEach((element) => {
-        subcatarray.push(element);
-      });
-    }
+  //   shopData["Category"].forEach((element) => {
+  //     catarray.push(element);
+  //   });
+  //   if (shopData[value]) {
+  //     shopData[value].forEach((element) => {
+  //       subcatarray.push(element);
+  //     });
+  //   }
 
-    setmainCategory(catarray);
-    setsubCategory(subcatarray);
-  }, [inputValue, value, subvalue, allStocks, shopData["Category"]]);
+  //   setmainCategory(catarray);
+  //   setsubCategory(subcatarray);
+  // }, [inputValue, value, subvalue, allStocks, shopData["Category"]]);
 
   return (
     <div className="flex items-end pb-2 flex-wrap">

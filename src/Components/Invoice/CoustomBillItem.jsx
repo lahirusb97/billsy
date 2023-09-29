@@ -46,8 +46,8 @@ export default function CoustomBillItem() {
     dispatch(addItem(data));
   };
   return (
-    <div className="flex flex-col m-4">
-      <h1 className="font-semibold my-4 text-2xl">Add Coustom Item</h1>
+    <div className="flex flex-col my-4 p-2">
+      <h1 className="font-semibold  text-2xl">Add Coustom Item</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         <TextField
           style={{ width: "100%" }}
@@ -58,7 +58,7 @@ export default function CoustomBillItem() {
           {errors.Product_name?.message}
         </p>
         <TextField
-          style={{ marginTop: "1rem", marginRight: "1rem" }}
+          style={{ width: "100%", marginTop: "1rem", marginRight: "1rem" }}
           label="Price"
           {...register("Price", { required: true })}
         />
@@ -66,7 +66,7 @@ export default function CoustomBillItem() {
           {errors.Price?.message}
         </p>
         <TextField
-          style={{ marginTop: "1rem" }}
+          style={{ width: "100%", marginTop: "1rem" }}
           label="Cost"
           {...register("Cost", { required: true })}
         />
@@ -75,7 +75,7 @@ export default function CoustomBillItem() {
         </p>
 
         <TextField
-          style={{ marginTop: "1rem" }}
+          style={{ width: "100%", marginTop: "1rem" }}
           label="Warranty"
           {...register("Warranty", { required: true })}
         />
